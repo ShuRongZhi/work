@@ -1,4 +1,6 @@
 work
 ====
-
-Native层下载，Java层显示
+研究ListView缓存及Jni使用
+此应用会从网络下载图片，并显示到ListView上
+图片的下载和内存缓存都由Native层负责
+Java层负责从Native层读取内存数据，生成Bitmap并显示到ListView上
