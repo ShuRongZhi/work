@@ -1,0 +1,76 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/Title1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="设置显示模式" />
+
+    <RadioGroup
+        android:id="@+id/DisplayMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <RadioButton
+            android:id="@+id/Mode1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="缩放图片到300*300显示" />
+
+        <RadioButton
+            android:id="@+id/Mode2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="不对图片进行缩放，直接显示" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/Title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="设置图片源大小" />
+
+    <RadioGroup
+        android:id="@+id/ImageSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <RadioButton
+            android:id="@+id/one_MP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1MP" />
+
+        <RadioButton
+            android:id="@+id/two_MP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2MP" />
+		<!--
+        <RadioButton
+            android:id="@+id/three_MP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3MP" />
+        -->
+    </RadioGroup>
+	<TextView
+	    android:id="@+id/Title3"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="选择图片数量"	    />
+	<Spinner
+	    android:id="@+id/ImageNum"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    />
+	<Button
+	    android:id="@+id/Start"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="测试ListView"	    />
+</LinearLayout>

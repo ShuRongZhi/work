@@ -1,0 +1,248 @@
+#include "CacheManager.h"
+//缓存管理类
+
+//根据图片路径取得内存
+char* CacheManager::getMemory(std::string image)
+{
+    //首先从pointList中查询此图片是否被缓存，如果已缓存，直接返回内存指针
+    MemoryIter = pointList.find(image);
+    if(MemoryIter != pointList.end())
+    {
+        LOGD("图片已缓存，返回图片");
+        return MemoryIter->second;
+    }
+    else
+    {
+        char *chp;
+        //以二进制的方式打开图片
+        fp_in.open(image.c_str(),std::ios::binary);
+        if(!fp_in)
+        {
+            LOGE("打开文件失败，文件名:%s",image.c_str());
+            return NULL;
+        }
+        else
+        {
+            
+            //取得图片长度
+            int FileLength = 0;
+            fp_in.seekg(0,std::ios::end);
+            FileLength = fp_in.tellg();
+            fp_in.seekg (0,std::ios::beg);
+            
+            //判断图片大小是否大于最大内存值
+            if(FileLength > maxMemorySize)
+            {
+                LOGE("图片大小超过最大内存限制:%d Byte",maxMemorySize);
+                return NULL;
+            }
+            
+            LOGD("当前已分配 %d Byte",getCurrentMemoryUse());
+			
+			//如果当前已分配的内存大小加上图片大小大于最大内存限制，则释放已分配的内存中占用最大的图片           
+            while((getCurrentMemoryUse() + FileLength) > maxMemorySize)
+            {
+
+                if(getCurrentMemoryUse() == 0)
+                {
+                    break;
+                }
+                //释放内存，策略是根据大小来进行释放
+                autoReleaseMemory("size");
+            }
+            
+			//LOGD("File Length:%d Byte,Try New Memory",FileLength);
+            
+            mTime.setStart();
+            //根据图片大小创建内存
+            chp = new char[FileLength];
+            mTime.setEnd();
+            LOGD("申请内存耗时:%f",mTime.getUseTime());
+            
+            if(NULL == chp)
+            {
+                LOGE("创建内存失败!");
+                return NULL;
+            }
+            else
+            {
+                mTime.setStart();
+                //LOGD("New Memory Success");
+                //从文件中读取数据到内存中
+                fp_in.read((char*)chp ,sizeof(char)*FileLength);
+                //LOGD("读取文件完毕，关闭文件");
+                fp_in.close();        
+                //将图片名和对应的内存指针加入到pointList中
+                pointList.insert(std::make_pair(image,chp));
+                //将图片名和对应的图片大小加入ImageSizeList中
+                ImageSizeList.insert(std::make_pair(image,FileLength));
+                mTime.setEnd();
+                LOGD("读取图片耗时:%f",mTime.getUseTime());
+            }
+            
+        }
+	    return chp;
+	}
+}
+
+//根据给定的图片名释放该图片占用的内存并置为NULL
+void CacheManager::releaseMemory(std::string image)
+{
+    mTime.setStart();
+	if(0 == image.length())
+	{
+		LOGE("要求释放的图片名为空，忽略");
+	}
+	else
+	{
+		//搜索该图片在pointList中的位置，如果找到，则进行内存释放操作，否则忽略
+		MemoryIter = pointList.find(image);
+		if(MemoryIter == pointList.end())
+		{
+			LOGD("没有找到该图片名对应的内存，忽略此次请求");
+		}
+		else
+		{
+		    //LOGD("删除图片:%s对应的指针",image.c_str());
+			delete[] MemoryIter->second;
+			MemoryIter->second = NULL;
+			//把被删除的图片信息从map中移除
+			ImageSizeList.erase(image);
+			pointList.erase(MemoryIter);
+		}
+	}
+	mTime.setEnd();
+	LOGD("释放内存耗时:%f",mTime.getUseTime());
+}
+
+
+//设置内存最大值
+void CacheManager::setMaxMenory(int size)
+{
+    if(0 == size)
+    {
+        LOGE("错误：内存最大值不能为0，将使用默认设置");
+    }
+    else
+    {
+        if(MB >= size)
+        {
+            LOGD("警告：内存最大值小于等于1MB，请确认单位，该函数接受的单位为Byte，设置操作还会进行");
+        }
+        maxMemorySize = size;
+    }
+}
+
+//取得当前已分配内存的大小
+int CacheManager::getCurrentMemoryUse()
+{
+    mTime.setStart();
+    SizeIter = ImageSizeList.begin();
+    int count = 0;
+    //遍历ImageSizeList，取得每张图片的大小并求和，单位为Byte
+    while(SizeIter != ImageSizeList.end())
+    {
+        count += SizeIter->second;
+        ++SizeIter;
+    }
+    mTime.setEnd();
+    LOGD("获取当前内存使用值耗时:%f",mTime.getUseTime());
+    return count;
+}
+
+//释放内存，给定释放策略，调用releaseMemory进行释放
+bool CacheManager::autoReleaseMemory(std::string plan)
+{
+    if(plan == "size")
+    {
+    	//取得内存占用最大的图片ID
+        std::string id = getMaxImageSizeID();
+        if("" == id)
+        {
+            return false;
+        }
+        else
+        {
+            //LOGD("尝试释放内存");
+            releaseMemory(id);
+            return true;
+        }
+    }
+    else if(plan == "id")
+    {
+    	//待实现根据id释放内存，暂时返回false
+        return false;
+    }
+    else
+    {
+        LOGD("错误：未知策略，该函数只接受'size'或'id'！");
+        return false;
+    }
+}
+
+//取得内存占用最大的图片ID
+std::string CacheManager::getMaxImageSizeID()
+{
+    mTime.setStart();
+    std::string id = "";
+    int max = 0;
+    //遍历map，取得内存占用最大的图片ID
+    SizeIter = ImageSizeList.begin();
+    while(SizeIter != ImageSizeList.end())
+    {
+        if(SizeIter->second > max)
+        {
+            max = SizeIter->second;
+            id = SizeIter->first;
+        }
+        ++SizeIter;
+    }
+    mTime.setEnd();
+    LOGD("获取内存占用最大的图片ID耗时:%f",mTime.getUseTime());
+    return id;
+}
+
+//取得图片ID最小的图片（好绕口）  待实现代码
+std::string CacheManager::getLittleImageID()
+{
+    return "";
+}
+
+//取得给定图片的大小
+int CacheManager::getImageSize(std::string image)
+{
+    mTime.setStart();
+	//从ImageSizeList中查找该图片，如果找到则返回图片大小，否则返回-1
+    SizeIter = ImageSizeList.find(image);
+    if(SizeIter == ImageSizeList.end())
+    {
+        mTime.setEnd();
+        LOGD("取得图片大小耗时:%f",mTime.getUseTime());
+        return -1;
+    }
+    else
+    {
+        mTime.setEnd();
+        LOGD("取得图片大小耗时:%f",mTime.getUseTime());
+        return SizeIter->second;
+    }
+}
+
+//析构函数，循环遍历pointList，删除指针并置为NULL
+CacheManager::~CacheManager()
+{
+    LOGD("CacheManager析构函数");
+    mTime.setStart();
+	MemoryIter = pointList.begin();
+	while(MemoryIter != pointList.end())
+	{
+		if(MemoryIter->second != NULL)
+		{
+			delete[] MemoryIter->second;
+			MemoryIter->second = NULL;
+		}
+		++MemoryIter;
+	}
+	mTime.setEnd();
+	LOGD("CacheManager析构函数耗时:%f",mTime.getUseTime());
+}
