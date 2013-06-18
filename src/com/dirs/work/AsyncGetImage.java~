@@ -11,8 +11,6 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-
-//异步加载类，负责从网络读取图片
 public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
 	private ImageView mImage;
 	private JniHelper mJniHelper = JniHelper.getInstance();
