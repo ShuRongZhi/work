@@ -14,11 +14,14 @@ import android.widget.Toast;
 
 //异步加载类，负责从网络读取图片
 public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
+    //Jni助手类
 	private ImageView mImage;
 	private JniHelper mJniHelper = JniHelper.getInstance();
 	private CacheHelper mCache = CacheHelper.getInstance();
 	private Context context = null;
+	//是否缩放
 	private boolean isZoom;
+	//设定缩放的宽高
 	private final int height = 300;
 	private final int width = 300;
 	private int position;
@@ -69,23 +72,28 @@ public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
 			this.recycle();
 			break;
 		case -1:
+		    //加载图片失败
 			Toast.makeText(context, "加载图片失败", Toast.LENGTH_LONG).show();
 			break;
 		case 1:
+		    //加载图片成功，根据传递的position从ViewCache取得ImageView控件
+		    //并从BitmapCache获取对应的位图，显示到ImageView上
 			ImageView iv = mCache.ViewCache.get(position);
 			Bitmap bm = mCache.bitmapCache.get(position);
 			if (bm == null) {
-				Log.d("debug", "aaa");
+				Log.d("debug", "BitmapCache取到空位图");
 			} else {
 				iv.setImageBitmap(bm);
 			}
 			break;
 		}
 	}
-
+    
+    //图片下载函数，传递图片名，调用Native层的getImage下载图片
 	private boolean getImage(String image) {
 		Log.d("debug", "getImage");
 		byte[] buf = mJniHelper.getImage(image);
+		//判断是否成功下载到图片
 		if (buf == null) {
 			Log.d("debug", "下载图片:" + image + "失败!");
 			return false;
@@ -96,8 +104,10 @@ public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
 			} catch (OutOfMemoryError oom) {
 				oom.printStackTrace();
 				Log.d("debug", "内存溢出");
+				//提示onProgressUpdate需要回收内存
 				publishProgress(0);
 				try {
+				    //等待2000毫秒
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -106,9 +116,13 @@ public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
 			} finally {
 				if (bm != null) {
 					Log.d("debug","finally!");
+					/**
+					*根据position，将位图放进BitmapCache相应的位置，在onProgressUpdate函数中取出
+					*/
 					if (!isZoom) {
 						mCache.bitmapCache.put(position, bm);
 					} else {
+					    //将原图缩放到width*height大小，并释放原图的内存
 						Bitmap newbm = Bitmap.createScaledBitmap(bm, width,
 								height, true);
 						bm.recycle();
@@ -121,7 +135,8 @@ public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
 		}
 		return true;
 	}
-
+    
+    //内存释放函数，当发生内存溢出时，遍历map，将不可见的Bitmap给释放掉
 	private void recycle() {
 		Log.d("debug", "准备开始释放内存");
 		Iterator iter = mCache.ViewCache.entrySet().iterator();
@@ -138,5 +153,6 @@ public class AsyncGetImage extends AsyncTask<String, Integer, Bitmap> {
 				}
 			}
 		}
+		Log.d("debug","内存释放完成");
 	}
 }

@@ -22,6 +22,9 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+/**
+* 自定义Adapter，用于在Item上显示Bitmap
+*/
 public class ImageAdapter extends BaseAdapter {
 
 
@@ -31,7 +34,8 @@ public class ImageAdapter extends BaseAdapter {
 	private LayoutInflater mInflater;
 	private CacheHelper mCache = CacheHelper.getInstance();
 	
-	private AsyncGetImage agi;
+	//获取图片的异步操作类
+	private AsyncGetImage mAsync;
 	
 	public ImageAdapter(List<String> list, Context c, boolean b) {
 		// TODO Auto-generated constructor stub
@@ -76,14 +80,16 @@ public class ImageAdapter extends BaseAdapter {
 			holder = (ViewHolder) view.getTag();
 			// holder.mImage.setImageResource(R.drawable.loading);
 		}
+		//判断当前的Item上图片是否被释放，如果释放则重新加载
 		if(mCache.Releaseed.containsKey(position)){
-			Log.d("debug","aaaa");
-			agi = new AsyncGetImage(context, holder.mImage,isZoom);
-			agi.execute(data.get(position),String.valueOf(position));
+			Log.d("debug","图片已被释放，重新加载");
+			mAsync = new AsyncGetImage(context, holder.mImage,isZoom);
+			mAsync.execute(data.get(position),String.valueOf(position));
 		}else{
+		    //开始异步加载图片
 			mCache.ViewCache.put(position,holder.mImage);
-			agi = new AsyncGetImage(context, holder.mImage,isZoom);
-			agi.execute(data.get(position),String.valueOf(position));
+			mAsync = new AsyncGetImage(context, holder.mImage,isZoom);
+			mAsync.execute(data.get(position),String.valueOf(position));
 		}
 		return view;
 	}
