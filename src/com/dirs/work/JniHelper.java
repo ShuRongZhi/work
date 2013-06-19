@@ -19,4 +19,6 @@ public class JniHelper {
 	//取得图片内存
 	//限制同一时间只能有一个线程访问，避免对Native层的资源产生修改冲突
 	public synchronized native byte[] getImage(String ImageID);
+	
+	public native boolean downloadImage(String imageID);
 }

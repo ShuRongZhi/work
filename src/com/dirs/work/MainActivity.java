@@ -26,7 +26,6 @@ public class MainActivity extends Activity {
 		for(int i=0;i<num;++i){
 			data.add(Size +"/test" + i +".jpg");
 		}
-		JniHelper.getInstance().init();
 		ImageAdapter adapter = new ImageAdapter(data,getApplicationContext(),isZoom);
 		lv.setAdapter(adapter);
 	}

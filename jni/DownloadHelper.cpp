@@ -31,7 +31,6 @@ static size_t WirteToFile(void *buffer, size_t size, size_t nmemb, void *stream)
     }
   }
   size_t res = fwrite(buffer, size, nmemb, out->_stream);
-  //LOGD("fwrite返回%d",res);
   return res;
 } 
 

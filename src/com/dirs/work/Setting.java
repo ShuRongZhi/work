@@ -3,6 +3,7 @@ package com.dirs.work;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -108,14 +109,16 @@ public class Setting extends Activity {
 				mBundle.putInt("Number",ImageNum);
 				//String res = "图片显示模式:" + DisplayMode + "图片质量:" + ImageSize + "图片数量:" + ImageNum;
 				//Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
+				
 				intent.putExtras(mBundle);
 				intent.setClass(getApplicationContext(), MainActivity.class);
 				startActivity(intent);
+						
 			}
 		}
 		
 	}
-
+	
 	class onSpinnerClick implements OnItemSelectedListener{
 
 		@Override

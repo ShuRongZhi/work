@@ -1,5 +1,6 @@
 #include "com_dirs_work_JniHelper.h"
 #include "DownloadHelper.h"
+#include "CacheManager.h"
 //声明函数原型
 std::string JstringToString(jstring);
 //全局变量
@@ -108,4 +109,32 @@ std::string JstringToString(jstring source)
     std::string temp(str);
     g_env->ReleaseStringUTFChars(source,str);
     return temp;
+}
+
+
+jboolean Java_com_dirs_work_JniHelper_downloadImage(JNIEnv *env, jobject thisz, jstring image)
+{
+    const char* str;
+    str = g_env->GetStringUTFChars(image, false);
+    std::string _image(str);
+    g_env->ReleaseStringUTFChars(image,str);
+    
+    if(0 == _image.length())
+    {
+        LOGD("Error,Native层downloadImage不接受空参数!");
+        return false;
+    }
+    else
+    {
+        DownloadHelper mDownloadHelper;
+        if("" == mDownloadHelper.getImage(_image))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    
 }
