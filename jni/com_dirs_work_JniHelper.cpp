@@ -33,10 +33,6 @@ void Java_com_dirs_work_JniHelper_init(JNIEnv *env, jobject thisz)
     {
         mFileHelper.createFolder(mCacheName + "2MP");
     }
-    if(!mFileHelper.checkFolderExits(mCacheName + "3MP"))
-    {
-        mFileHelper.createFolder(mCacheName + "3MP");
-    }
     mTime.setStart();
     g_env = env;
     mTime.setEnd();

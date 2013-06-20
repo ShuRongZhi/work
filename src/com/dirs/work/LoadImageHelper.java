@@ -18,30 +18,39 @@ import android.widget.Toast;
 public class LoadImageHelper {
 
 	private static LoadImageHelper instance = null;
-	private CacheHelper mCache = null;
-	private getImageThread mThread = null;
-	private JniHelper mJniHelper = null;
 	private boolean isZoom = true;
+	//指定缩放图片的宽高
 	private final int width = 300;
 	private final int height = 300;
-	private Object lock = new Object();
-	private Context context = null;
+	//线程停止标志
 	private boolean isNeedStop;
+	//缓存助手类
+	private CacheHelper mCache = null;
+	//下载图片的线程
+	private getImageThread mThread = null;
+	//Jni助手类
+	private JniHelper mJniHelper = null;
+	//同步锁对象
+	private Object lock = new Object();
 
-	public static LoadImageHelper getInstance(boolean b, Context c) {
+
+	public static LoadImageHelper getInstance(boolean b) {
 		if (instance == null) {
-			instance = new LoadImageHelper(b, c);
+			instance = new LoadImageHelper(b);
 		}
 		return instance;
 
 	}
 
-	private LoadImageHelper(boolean b, Context c) {
+	public void clear(){
+		instance = null;
+	}
+	
+	private LoadImageHelper(boolean b) {
 		mThread = new getImageThread();
 		mCache = CacheHelper.getInstance();
 		mJniHelper = JniHelper.getInstance();
 		isZoom = b;
-		context = c;
 		isNeedStop = false;
 	}
 
@@ -56,20 +65,22 @@ public class LoadImageHelper {
 		}
 	}
 
+	//停止下载线程
 	public void stop() {
 		isNeedStop = true;
 	}
 
+	//图片下载线程
 	class getImageThread extends Thread {
-
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
 			super.run();
 			while (!isNeedStop) {
+				//如果停止标志不为true，则查询加载队列是否为空，如果为空休眠1秒
 				if (!mCache.isListEmpty()) {
 					try {
-						Thread.sleep(500);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -144,7 +155,7 @@ public class LoadImageHelper {
 							mCache.BitmapCache.put(position, newbm);
 						}
 					} catch (OutOfMemoryError wtf) {
-						Log.d("debug", "wtf??内存还是溢出了！！");
+						Log.d("debug", "wtf??内存还是溢出了！！你大爷的虚拟机!!");
 						wtf.printStackTrace();
 						return false;
 					}
@@ -167,11 +178,13 @@ public class LoadImageHelper {
 			Iterator iter = mCache.UnRecycle.entrySet().iterator();
 			List<Integer> releaseList = new ArrayList<Integer>();
 			ImageView iv = null;
-			// 计数器，只释放内存溢出位置前一张图片之前的图片，比如在15这个位置溢出，那就只释放0-13的图片，留下一张图片
+			
+			// 计数器，只释放内存溢出位置前X张图片之前的图片，比如在15这个位置溢出，那就只释放0-(15-X)的图片，留下X张图片
 			// 避免突然所有图片都消失了
 			int count = 0;
 			while (iter.hasNext()) {
 				// 判断是否应该退出
+				//这里为留下前3张图片
 				if (++count > (size - 3)) {
 					break;
 				}
@@ -209,7 +222,6 @@ public class LoadImageHelper {
 			for (int i = 0; i < releaseList.size(); i++) {
 				mCache.BitmapCache.remove(i);
 				mCache.UnRecycle.remove(i);
-	
 			}
 			Log.d("debug", "已释放集合大小:" + mCache.UnRecycle.size());
 			lock.notify();
@@ -227,7 +239,8 @@ public class LoadImageHelper {
 			switch (msg.what) {
 			// 下载图片失败
 			case -1:
-				Toast.makeText(context, "加载图片失败!", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(context, "加载图片失败!", Toast.LENGTH_SHORT).show();
+				//将下载失败的位置设置为失败提示图片
 				View err_v = mCache.ViewCache.get(msg.arg1);
 				ImageView err_iv = (ImageView) err_v.findViewById(R.id.image);
 				err_iv.setImageResource(R.drawable.download_error);
@@ -243,6 +256,8 @@ public class LoadImageHelper {
 				ImageView iv = (ImageView) v.findViewById(R.id.image);
 				Bitmap bm = mCache.BitmapCache.get(position);
 				iv.setImageBitmap(bm);
+				//加载成功再将Item添加到未释放列表中
+				mCache.UnRecycle.put(position,iv);
 				break;
 			}
 		}

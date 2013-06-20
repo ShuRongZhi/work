@@ -1,7 +1,9 @@
 package com.dirs.work;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import android.graphics.Bitmap;
@@ -36,7 +38,7 @@ public class CacheHelper {
 		LoadList.addFirst(map);
 	}
 	
-	//从消息队列中取出消息
+	//从加载队列中取出消息
 	public Map<Integer,String> pop(){
 		if(!LoadList.isEmpty()){
 			return LoadList.pop();
