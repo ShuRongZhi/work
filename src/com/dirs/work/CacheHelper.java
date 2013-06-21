@@ -50,4 +50,12 @@ public class CacheHelper {
 	public boolean isListEmpty(){
 		return LoadList.isEmpty();
 	}
+	
+	public void clearCache(){
+		LoadList.clear();
+		ViewCache.clear();
+		BitmapCache.clear();
+		UnRecycle.clear();
+		Recycled.clear();
+	}
 }

@@ -5,7 +5,11 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	
@@ -47,6 +51,7 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		mLoadHelper = LoadImageHelper.getInstance(isZoom);
+		//启动加载线程
 		mLoadHelper.start();
-	}
+	}	
 }

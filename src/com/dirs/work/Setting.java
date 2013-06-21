@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -94,27 +96,28 @@ public class Setting extends Activity {
 
 		@Override
 		public void onClick(View v) {
-			// TODO Auto-generated method stub
-			if(DisplayMode.isEmpty() || ImageSize.isEmpty()){
-				Toast.makeText(getApplicationContext(), "必须选择显示模式和图片质量!",Toast.LENGTH_LONG).show();
-			}else{
-				Intent intent = new Intent();
-				Bundle mBundle = new Bundle();
-				if(DisplayMode.equals("Zoom")){
-					mBundle.putBoolean("Mode",true);
+			switch(v.getId()){
+			case R.id.Start:
+				if(DisplayMode.isEmpty() || ImageSize.isEmpty()){
+					Toast.makeText(getApplicationContext(), "必须选择显示模式和图片质量!",Toast.LENGTH_LONG).show();
 				}else{
-					mBundle.putBoolean("Mode",false);
+					Intent intent = new Intent();
+					Bundle mBundle = new Bundle();
+					if(DisplayMode.equals("Zoom")){
+						mBundle.putBoolean("Mode",true);
+					}else{
+						mBundle.putBoolean("Mode",false);
+					}
+					mBundle.putString("Size",ImageSize);
+					mBundle.putInt("Number",ImageNum);
+					intent.putExtras(mBundle);
+					intent.setClass(getApplicationContext(), MainActivity.class);
+					startActivity(intent);
+							
 				}
-				mBundle.putString("Size",ImageSize);
-				mBundle.putInt("Number",ImageNum);
-				//String res = "图片显示模式:" + DisplayMode + "图片质量:" + ImageSize + "图片数量:" + ImageNum;
-				//Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
-				
-				intent.putExtras(mBundle);
-				intent.setClass(getApplicationContext(), MainActivity.class);
-				startActivity(intent);
-						
+				break;
 			}
+			// TODO Auto-generated method stub
 		}
 		
 	}
@@ -141,5 +144,23 @@ public class Setting extends Activity {
 		// TODO Auto-generated method stub
 		super.onPause();
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		menu.add("清空内存缓存");
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		// TODO Auto-generated method stub
+		//清空内存缓存
+		CacheHelper.getInstance().clearCache();
+		Toast.makeText(getApplicationContext(), "内存缓存已清除",Toast.LENGTH_LONG).show();
+		return super.onMenuItemSelected(featureId, item);
+	}
+	
+	
 
 }
