@@ -1,9 +1,7 @@
 package com.dirs.work;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import android.graphics.Bitmap;
@@ -40,15 +38,19 @@ public class CacheHelper {
 	
 	//从加载队列中取出消息
 	public Map<Integer,String> pop(){
-		if(!LoadList.isEmpty()){
-			return LoadList.pop();
+		if(LoadList.size() != 0){
+			return LoadList.poll();
 		}else{
 			return null;
 		}
 	}
 	
 	public boolean isListEmpty(){
-		return LoadList.isEmpty();
+		if(LoadList.size() == 0){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	public void clearCache(){

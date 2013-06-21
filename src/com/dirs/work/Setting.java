@@ -98,7 +98,7 @@ public class Setting extends Activity {
 		public void onClick(View v) {
 			switch(v.getId()){
 			case R.id.Start:
-				if(DisplayMode.isEmpty() || ImageSize.isEmpty()){
+				if(DisplayMode.length() == 0 || ImageSize.length() == 0){
 					Toast.makeText(getApplicationContext(), "必须选择显示模式和图片质量!",Toast.LENGTH_LONG).show();
 				}else{
 					Intent intent = new Intent();

@@ -27,7 +27,7 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := imageHelper
-LOCAL_SRC_FILES := com_dirs_work_JniHelper.cpp | CacheManager.cpp | TimeHelper.cpp | FileHelper.cpp | DownloadHelper.cpp
+LOCAL_SRC_FILES := com_dirs_work_JniHelper.cpp | CacheManager.cpp | TimeHelper.cpp | FileHelper.cpp | DownloadHelper.cpp | ImageProcess.cpp
 LOCAL_STATIC_LIBRARIES := libcurl
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/curl/include $(LOCAL_PATH)/curl/lib
 LOCAL_LDLIBS += -L$(SYSROOT)/usr/lib -llog
