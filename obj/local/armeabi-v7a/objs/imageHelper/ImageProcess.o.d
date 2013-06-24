@@ -1,5 +1,6 @@
 obj/local/armeabi-v7a/objs/imageHelper/ImageProcess.o: \
- jni/../jni/ImageProcess.cpp jni/../jni/OpenCV/jni/include/opencv/cv.h \
+ jni/../jni/ImageProcess.cpp jni/../jni/ImageProcess.h \
+ jni/../jni/OpenCV/jni/include/opencv2/opencv.hpp \
  jni/../jni/OpenCV/jni/include/opencv2/core/core_c.h \
  jni/../jni/OpenCV/jni/include/opencv2/core/types_c.h \
  /home/dice/Android/jni/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/assert.h \
@@ -43,63 +44,37 @@ obj/local/armeabi-v7a/objs/imageHelper/ImageProcess.o: \
  jni/../jni/OpenCV/jni/include/opencv2/core/operations.hpp \
  /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/limits \
  jni/../jni/OpenCV/jni/include/opencv2/core/mat.hpp \
- jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc_c.h \
- jni/../jni/OpenCV/jni/include/opencv2/imgproc/types_c.h \
- jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc.hpp \
- jni/../jni/OpenCV/jni/include/opencv2/video/tracking.hpp \
- jni/../jni/OpenCV/jni/include/opencv2/features2d/features2d.hpp \
  jni/../jni/OpenCV/jni/include/opencv2/flann/miniflann.hpp \
  jni/../jni/OpenCV/jni/include/opencv2/flann/defines.h \
  jni/../jni/OpenCV/jni/include/opencv2/flann/config.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/flann.hpp \
- jni/../jni/OpenCV/jni/include/opencv2/flann/flann_base.hpp \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/cassert \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/cstdio \
- jni/../jni/OpenCV/jni/include/opencv2/flann/general.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/defines.h \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/stdexcept \
- jni/../jni/OpenCV/jni/include/opencv2/flann/matrix.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/params.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/any.h \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/typeinfo \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/iostream \
- jni/../jni/OpenCV/jni/include/opencv2/flann/saving.h \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/cstring \
- jni/../jni/OpenCV/jni/include/opencv2/flann/nn_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/result_set.h \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/set \
- jni/../jni/OpenCV/jni/include/opencv2/flann/all_indices.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/kdtree_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/dynamic_bitset.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/dist.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/heap.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/allocator.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/random.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/kdtree_single_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/kmeans_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/logger.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/composite_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/linear_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/hierarchical_clustering_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/lsh_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/lsh_table.h \
- /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/iomanip \
- jni/../jni/OpenCV/jni/include/opencv2/flann/autotuned_index.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/ground_truth.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/index_testing.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/timer.h \
- jni/../jni/OpenCV/jni/include/opencv2/flann/sampling.h \
- jni/../jni/OpenCV/jni/include/opencv2/calib3d/calib3d.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc_c.h \
+ jni/../jni/OpenCV/jni/include/opencv2/imgproc/types_c.h \
+ jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/photo/photo.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/photo/photo_c.h \
+ jni/../jni/OpenCV/jni/include/opencv2/video/video.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/video/tracking.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/video/background_segm.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/features2d/features2d.hpp \
  jni/../jni/OpenCV/jni/include/opencv2/objdetect/objdetect.hpp \
  /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/deque \
- jni/../jni/OpenCV/jni/include/opencv2/legacy/compat.hpp \
- jni/../jni/OpenCV/jni/include/opencv2/core/internal.hpp \
- jni/../jni/OpenCV/jni/include/opencv/highgui.h \
+ jni/../jni/OpenCV/jni/include/opencv2/calib3d/calib3d.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/ml/ml.hpp \
+ /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/iostream \
  jni/../jni/OpenCV/jni/include/opencv2/highgui/highgui_c.h \
  jni/../jni/OpenCV/jni/include/opencv2/highgui/highgui.hpp \
- jni/../jni/ImageProcess.h
+ jni/../jni/OpenCV/jni/include/opencv2/contrib/contrib.hpp \
+ jni/../jni/OpenCV/jni/include/opencv2/contrib/retina.hpp \
+ /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/valarray \
+ jni/../jni/OpenCV/jni/include/opencv/highgui.h jni/../jni/debugOut.h \
+ /home/dice/Android/jni/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/android/log.h \
+ jni/../jni/FileHelper.h \
+ /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/fstream \
+ jni/../jni/TimeHelper.h
 
-jni/../jni/OpenCV/jni/include/opencv/cv.h:
+jni/../jni/ImageProcess.h:
+
+jni/../jni/OpenCV/jni/include/opencv2/opencv.hpp:
 
 jni/../jni/OpenCV/jni/include/opencv2/core/core_c.h:
 
@@ -187,112 +162,58 @@ jni/../jni/OpenCV/jni/include/opencv2/core/operations.hpp:
 
 jni/../jni/OpenCV/jni/include/opencv2/core/mat.hpp:
 
-jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc_c.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/imgproc/types_c.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc.hpp:
-
-jni/../jni/OpenCV/jni/include/opencv2/video/tracking.hpp:
-
-jni/../jni/OpenCV/jni/include/opencv2/features2d/features2d.hpp:
-
 jni/../jni/OpenCV/jni/include/opencv2/flann/miniflann.hpp:
 
 jni/../jni/OpenCV/jni/include/opencv2/flann/defines.h:
 
 jni/../jni/OpenCV/jni/include/opencv2/flann/config.h:
 
-jni/../jni/OpenCV/jni/include/opencv2/flann/flann.hpp:
+jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc_c.h:
 
-jni/../jni/OpenCV/jni/include/opencv2/flann/flann_base.hpp:
+jni/../jni/OpenCV/jni/include/opencv2/imgproc/types_c.h:
 
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/cassert:
+jni/../jni/OpenCV/jni/include/opencv2/imgproc/imgproc.hpp:
 
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/cstdio:
+jni/../jni/OpenCV/jni/include/opencv2/photo/photo.hpp:
 
-jni/../jni/OpenCV/jni/include/opencv2/flann/general.h:
+jni/../jni/OpenCV/jni/include/opencv2/photo/photo_c.h:
 
-jni/../jni/OpenCV/jni/include/opencv2/flann/defines.h:
+jni/../jni/OpenCV/jni/include/opencv2/video/video.hpp:
 
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/stdexcept:
+jni/../jni/OpenCV/jni/include/opencv2/video/tracking.hpp:
 
-jni/../jni/OpenCV/jni/include/opencv2/flann/matrix.h:
+jni/../jni/OpenCV/jni/include/opencv2/video/background_segm.hpp:
 
-jni/../jni/OpenCV/jni/include/opencv2/flann/params.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/any.h:
-
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/typeinfo:
-
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/iostream:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/saving.h:
-
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/cstring:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/nn_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/result_set.h:
-
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/set:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/all_indices.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/kdtree_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/dynamic_bitset.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/dist.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/heap.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/allocator.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/random.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/kdtree_single_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/kmeans_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/logger.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/composite_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/linear_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/hierarchical_clustering_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/lsh_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/lsh_table.h:
-
-/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/iomanip:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/autotuned_index.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/ground_truth.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/index_testing.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/timer.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/flann/sampling.h:
-
-jni/../jni/OpenCV/jni/include/opencv2/calib3d/calib3d.hpp:
+jni/../jni/OpenCV/jni/include/opencv2/features2d/features2d.hpp:
 
 jni/../jni/OpenCV/jni/include/opencv2/objdetect/objdetect.hpp:
 
 /home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/deque:
 
-jni/../jni/OpenCV/jni/include/opencv2/legacy/compat.hpp:
+jni/../jni/OpenCV/jni/include/opencv2/calib3d/calib3d.hpp:
 
-jni/../jni/OpenCV/jni/include/opencv2/core/internal.hpp:
+jni/../jni/OpenCV/jni/include/opencv2/ml/ml.hpp:
 
-jni/../jni/OpenCV/jni/include/opencv/highgui.h:
+/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/iostream:
 
 jni/../jni/OpenCV/jni/include/opencv2/highgui/highgui_c.h:
 
 jni/../jni/OpenCV/jni/include/opencv2/highgui/highgui.hpp:
 
-jni/../jni/ImageProcess.h:
+jni/../jni/OpenCV/jni/include/opencv2/contrib/contrib.hpp:
+
+jni/../jni/OpenCV/jni/include/opencv2/contrib/retina.hpp:
+
+/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/valarray:
+
+jni/../jni/OpenCV/jni/include/opencv/highgui.h:
+
+jni/../jni/debugOut.h:
+
+/home/dice/Android/jni/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/android/log.h:
+
+jni/../jni/FileHelper.h:
+
+/home/dice/Android/jni/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include/fstream:
+
+jni/../jni/TimeHelper.h:

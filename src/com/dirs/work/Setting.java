@@ -65,13 +65,13 @@ public class Setting extends Activity {
 			// TODO Auto-generated method stub
 			if (RG_DisplayMode == group) {
 				if (RB_ZoomMode.getId() == checkedId) {
-					Toast.makeText(getApplicationContext(), "选择缩放模式",
+					Toast.makeText(getApplicationContext(), "选择Java处理缩放",
 							Toast.LENGTH_SHORT).show();
-					DisplayMode = "Zoom";
+					DisplayMode = "Java";
 				} else {
-					Toast.makeText(getApplicationContext(), "选择原始图片模式",
+					Toast.makeText(getApplicationContext(), "选择Native处理缩放",
 							Toast.LENGTH_SHORT).show();
-					DisplayMode = "Origin";
+					DisplayMode = "Native";
 				}
 			} else {
 				if (RB_1MP.getId() == checkedId) {
@@ -103,7 +103,7 @@ public class Setting extends Activity {
 				}else{
 					Intent intent = new Intent();
 					Bundle mBundle = new Bundle();
-					if(DisplayMode.equals("Zoom")){
+					if(DisplayMode.equals("Java")){
 						mBundle.putBoolean("Mode",true);
 					}else{
 						mBundle.putBoolean("Mode",false);

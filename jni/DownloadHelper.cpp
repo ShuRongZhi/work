@@ -1,9 +1,9 @@
 #include "DownloadHelper.h"
 #include "FileHelper.h"
+#include "ImageProcess.h"
 
-//缓存文件名
+
 std::string CachePath;
-
 //设置下载结构体
 struct DownInfo{
   //文件名
@@ -22,7 +22,7 @@ static size_t WirteToFile(void *buffer, size_t size, size_t nmemb, void *stream)
   {
     //以  漫画ID_图片ID  的格式作为文件名
     std::string file_name = CachePath + out->_ImageID;
-   //以二进制的方法打开文件
+    //以二进制的方法打开文件
     out->_stream=fopen(file_name.c_str(), "wb+");
     if(!out->_stream)
     {        
@@ -35,39 +35,96 @@ static size_t WirteToFile(void *buffer, size_t size, size_t nmemb, void *stream)
 } 
 
 
-std::string DownloadHelper::getImage(std::string ImageID)
+std::string DownloadHelper::getImage(std::string ImageID,bool isZoom)
 {
-    FileHelper l_mFileHelper;   
-    std::string imageName = ImageID;
-    //取得缓存路径
-    CachePath = l_mFileHelper.getCachePath();
-    //判断图片是否已缓存
-    if(l_mFileHelper.checkFileExits(imageName))
+    //图像处理类
+    ImageProcess mImageProcess;
+    //文件助手类
+    FileHelper l_mFileHelper;
+    //取得存放原图的缓存路径
+    CachePath = l_mFileHelper.getOriginCachePath();
+    if(isZoom)
     {
-        LOGD("图片已缓存");
-        //如果图片已缓存，则直接返回图片路径
-        return l_mFileHelper.getImagePath(imageName);
+        if(l_mFileHelper.checkSmallImageExits(ImageID))
+        {
+            LOGD("小图已缓存，返回小图");
+            return l_mFileHelper.getSmallCachePath() + ImageID;
+        }
+        else
+        {
+            LOGD("小图未缓存，查询大图是否存在");
+            if(l_mFileHelper.checkOriginImageExits(ImageID))
+            {
+                LOGD("大图已缓存，转换成小图");
+                if(!mImageProcess.reSizeImage(ImageID,300,300))
+                {
+                    LOGE("转换失败!");
+                    return "error";
+                }
+                else
+                {
+                    LOGD("转换成功，返回小图");
+                    return l_mFileHelper.getSmallCachePath() + ImageID;
+                }
+            }
+            else
+            {
+                LOGD("图片未缓存，向网络请求图片");
+                //给结构体设置成员变量
+                _downInfo._ImageID = ImageID;
+                std::string url;
+                //生成获取图片url
+                url = "http://tonjay123.webcrow.jp/Image/"+ ImageID;
+                //判断下载是否成功
+                if(download(url))
+                {
+                    LOGD("图片下载完毕，转换成小图");
+                    if(!mImageProcess.reSizeImage(ImageID,300,300))
+                    {
+                        LOGE("转换失败!");
+                        return "error";
+                    }
+                    else
+                    {
+                        return l_mFileHelper.getSmallCachePath() + ImageID;
+                    }
+                }
+                else
+                {
+                     //下载失败，删除失败文件
+                     l_mFileHelper.delImage(l_mFileHelper.getSmallCachePath() + ImageID);
+                     return "error";
+                }
+            }
+        }
     }
     else
     {
-      LOGD("图片未缓存，向网络请求图片");
-      //给结构体设置成员变量
-      _downInfo._ImageID = ImageID;
-      std::string url;
-      //生成获取图片url
-      url = "http://tonjay123.webcrow.jp/Image/"+ ImageID;
-      //判断下载是否成功
-      if(download(url))
-      {
-        return l_mFileHelper.getImagePath(imageName);
-      }
-      else
-      {
-        //下载失败，删除失败文件
-      	l_mFileHelper.delImage(l_mFileHelper.getImagePath(imageName));
-        return "error";
-      }
-      
+        if(l_mFileHelper.checkOriginImageExits(ImageID))
+        {
+            LOGD("图片已缓存，返回图片");
+            return l_mFileHelper.getOriginCachePath() + ImageID;
+        }
+        else
+        {
+            LOGD("图片未缓存，向网络请求图片");
+            //给结构体设置成员变量
+            _downInfo._ImageID = ImageID;
+            std::string url;
+            //生成获取图片url
+            url = "http://tonjay123.webcrow.jp/Image/"+ ImageID;
+            //判断下载是否成功
+            if(download(url))
+            {  
+                return l_mFileHelper.getOriginCachePath() + ImageID;
+            }
+            else
+            {
+                //下载失败，删除失败文件
+                l_mFileHelper.delImage(l_mFileHelper.getOriginCachePath() + ImageID);
+                return "error";
+            }
+        }
     }
 }
 
@@ -94,7 +151,6 @@ bool DownloadHelper::download(std::string url)
             
             if(CURLE_OK == res)
             {
-                LOGD("下载成功!");
                 returnValue = true;   
             }
             else
@@ -109,11 +165,7 @@ bool DownloadHelper::download(std::string url)
         if(_downInfo._stream)
         {
             //关闭文件
-            if(0 == fclose(_downInfo._stream))
-            {
-                LOGD("关闭文件成功！");
-            }
-            else
+            if(0 != fclose(_downInfo._stream))
             {
                 LOGE("关闭文件失败!");
             }

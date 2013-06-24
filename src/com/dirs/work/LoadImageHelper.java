@@ -18,7 +18,8 @@ import android.widget.Toast;
 public class LoadImageHelper {
 
 	private static LoadImageHelper instance = null;
-	private boolean isZoom = true;
+	//指定缩放模式
+	private boolean isJava = true;
 	//指定缩放图片的宽高
 	private final int width = 300;
 	private final int height = 300;
@@ -50,7 +51,7 @@ public class LoadImageHelper {
 		mThread = new getImageThread();
 		mCache = CacheHelper.getInstance();
 		mJniHelper = JniHelper.getInstance();
-		isZoom = b;
+		isJava = b;
 		isNeedStop = false;
 	}
 
@@ -112,14 +113,14 @@ public class LoadImageHelper {
 
 	// 图片下载函数，调用JniHelper提供getImage接口，获得图片对应的byte[]，如果下载失败返回null
 	private synchronized boolean getImage(String iamge, int position) {
-		mJniHelper.init();
+		mJniHelper.init(isJava);
 		byte[] buf = mJniHelper.getImage(iamge);
 		if (buf != null) {
 			try {
 				Bitmap bm = BitmapFactory.decodeByteArray(buf, 0, buf.length);
 				if (bm != null) {
 					// 判断是否缩放，如果要求缩放则创建一个缩放后的Bitmap加入Bitmap集合中，否则直接加入
-					if (!isZoom) {
+					if (!isJava) {
 						mCache.BitmapCache.put(position, bm);
 					} else {
 						Bitmap newbm = Bitmap.createScaledBitmap(bm, width,
@@ -146,7 +147,7 @@ public class LoadImageHelper {
 					Bitmap bm = null;
 					try {
 						bm = BitmapFactory.decodeByteArray(buf, 0, buf.length);
-						if (!isZoom) {
+						if (!isJava) {
 							mCache.BitmapCache.put(position, bm);
 						} else {
 							Bitmap newbm = Bitmap.createScaledBitmap(bm, width,
@@ -239,7 +240,6 @@ public class LoadImageHelper {
 			switch (msg.what) {
 			// 下载图片失败
 			case -1:
-				//Toast.makeText(context, "加载图片失败!", Toast.LENGTH_SHORT).show();
 				//将下载失败的位置设置为失败提示图片
 				View err_v = mCache.ViewCache.get(msg.arg1);
 				ImageView err_iv = (ImageView) err_v.findViewById(R.id.image);

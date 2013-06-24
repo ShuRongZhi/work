@@ -168,8 +168,6 @@
 //                              Test's own tr1 tuple implementation should be
 //                              used.  Unused when the user sets
 //                              GTEST_HAS_TR1_TUPLE to 0.
-//   GTEST_LANG_CXX11         - Define it to 1/0 to indicate that Google Test
-//                              is building in C++11/C++98 mode.
 //   GTEST_LINKED_AS_SHARED_LIBRARY
 //                            - Define to 1 when compiling tests that use
 //                              Google Test as a shared library (known as
@@ -188,8 +186,6 @@
 //   GTEST_OS_LINUX    - Linux
 //     GTEST_OS_LINUX_ANDROID - Google Android
 //   GTEST_OS_MAC      - Mac OS X
-//     GTEST_OS_IOS    - iOS
-//       GTEST_OS_IOS_SIMULATOR - iOS simulator
 //   GTEST_OS_NACL     - Google Native Client (NaCl)
 //   GTEST_OS_OPENBSD  - OpenBSD
 //   GTEST_OS_QNX      - QNX
@@ -295,11 +291,6 @@
 # include <sys/stat.h>
 #endif  // !_WIN32_WCE
 
-#if defined __APPLE__
-# include <AvailabilityMacros.h>
-# include <TargetConditionals.h>
-#endif
-
 #include <iostream>  // NOLINT
 #include <sstream>  // NOLINT
 #include <string>  // NOLINT
@@ -335,8 +326,6 @@
 #define GTEST_OS_NACL 0
 #define GTEST_OS_OPENBSD 0
 #define GTEST_OS_QNX 0
-#define GTEST_OS_IOS 0
-#define GTEST_OS_IOS_SIMULATOR 0
 
 #ifdef __CYGWIN__
 # undef GTEST_OS_CYGWIN
@@ -360,21 +349,13 @@
 #elif defined __APPLE__
 # undef GTEST_OS_MAC
 # define GTEST_OS_MAC 1
-# if TARGET_OS_IPHONE
-#  undef GTEST_OS_IOS
-#  define GTEST_OS_IOS 1
-#  if TARGET_IPHONE_SIMULATOR
-#   undef GTEST_OS_IOS_SIMULATOR
-#   define GTEST_OS_IOS_SIMULATOR 1
-#  endif
-# endif
 #elif defined __linux__
 # undef GTEST_OS_LINUX
 # define GTEST_OS_LINUX 1
-# if defined __ANDROID__
+# ifdef ANDROID
 #  undef GTEST_OS_LINUX_ANDROID
 #  define GTEST_OS_LINUX_ANDROID 1
-# endif
+# endif  // ANDROID
 #elif defined __MVS__
 # undef GTEST_OS_ZOS
 # define GTEST_OS_ZOS 1
@@ -398,19 +379,6 @@
 # define GTEST_OS_QNX 1
 #endif  // __CYGWIN__
 
-#ifndef GTEST_LANG_CXX11
-// gcc and clang define __GXX_EXPERIMENTAL_CXX0X__ when
-// -std={c,gnu}++{0x,11} is passed.  The C++11 standard specifies a
-// value for __cplusplus, and recent versions of clang, gcc, and
-// probably other compilers set that too in C++11 mode.
-# if defined __GXX_EXPERIMENTAL_CXX0X__ || __cplusplus >= 201103L
-// Compiling in at least C++11 mode.
-#  define GTEST_LANG_CXX11 1
-# else
-#  define GTEST_LANG_CXX11 0
-# endif
-#endif
-
 // Brings in definitions for functions used in the testing::internal::posix
 // namespace (read, write, close, chdir, isatty, stat). We do not currently
 // use them on Windows Mobile.
@@ -419,25 +387,20 @@
 // is not the case, we need to include headers that provide the functions
 // mentioned above.
 # include <unistd.h>
-# include <strings.h>
+# if !GTEST_OS_NACL
+// TODO(vladl@google.com): Remove this condition when Native Client SDK adds
+// strings.h (tracked in
+// http://code.google.com/p/nativeclient/issues/detail?id=1175).
+#  include <strings.h>  // Native Client doesn't provide strings.h.
+# endif
 #elif !GTEST_OS_WINDOWS_MOBILE
 # include <direct.h>
 # include <io.h>
 #endif
 
-#if GTEST_OS_LINUX_ANDROID
-// Used to define __ANDROID_API__ matching the target NDK API level.
-#  include <android/api-level.h>  // NOLINT
-#endif
-
 // Defines this to true iff Google Test can use POSIX regular expressions.
 #ifndef GTEST_HAS_POSIX_RE
-# if GTEST_OS_LINUX_ANDROID
-// On Android, <regex.h> is only available starting with Froyo.
-#  define GTEST_HAS_POSIX_RE (__ANDROID_API__ >= 8)
-# else
 # define GTEST_HAS_POSIX_RE (!GTEST_OS_WINDOWS)
-#endif
 #endif
 
 #if GTEST_HAS_POSIX_RE
@@ -448,7 +411,7 @@
 // <stddef.h>.
 # include <regex.h>  // NOLINT
 
-# define GTEST_USES_POSIX_RE 1
+# define GTEST_USES_POSIX_RE  1
 # define GTEST_USES_SIMPLE_RE 0
 
 #elif GTEST_OS_WINDOWS
@@ -555,16 +518,7 @@
 # elif defined(__GNUC__) && (GTEST_GCC_VER_ >= 40302)
 
 #  ifdef __GXX_RTTI
-// When building against STLport with the Android NDK and with
-// -frtti -fno-exceptions, the build fails at link time with undefined
-// references to __cxa_bad_typeid. Note sure if STL or toolchain bug,
-// so disable RTTI when detected.
-#   if GTEST_OS_LINUX_ANDROID && defined(_STLPORT_MAJOR) && \
-       !defined(__EXCEPTIONS)
-#    define GTEST_HAS_RTTI 0
-#   else
 #   define GTEST_HAS_RTTI 1
-#   endif  // GTEST_OS_LINUX_ANDROID && _STLPORT_MAJOR && !__EXCEPTIONS
 #  else
 #   define GTEST_HAS_RTTI 0
 #  endif  // __GXX_RTTI
@@ -625,13 +579,8 @@
 // this macro to 0 to prevent Google Test from using tuple (any
 // feature depending on tuple with be disabled in this mode).
 #ifndef GTEST_HAS_TR1_TUPLE
-# if GTEST_OS_LINUX_ANDROID && defined(_STLPORT_MAJOR)
-// STLport, provided with the Android NDK, has neither <tr1/tuple> or <tuple>.
-#  define GTEST_HAS_TR1_TUPLE 0
-# else
 // The user didn't tell us not to do it, so we assume it's OK.
 # define GTEST_HAS_TR1_TUPLE 1
-# endif
 #endif  // GTEST_HAS_TR1_TUPLE
 
 // Determines whether Google Test's own tr1 tuple implementation
@@ -640,38 +589,18 @@
 // The user didn't tell us, so we need to figure it out.
 
 // We use our own TR1 tuple if we aren't sure the user has an
-// implementation of it already.  At this time, libstdc++ 4.0.0+ and
-// MSVC 2010 are the only mainstream standard libraries that come
-// with a TR1 tuple implementation.  NVIDIA's CUDA NVCC compiler
-// pretends to be GCC by defining __GNUC__ and friends, but cannot
-// compile GCC's tuple implementation.  MSVC 2008 (9.0) provides TR1
-// tuple in a 323 MB Feature Pack download, which we cannot assume the
-// user has.  QNX's QCC compiler is a modified GCC but it doesn't
-// support TR1 tuple.  libc++ only provides std::tuple, in C++11 mode,
-// and it can be used with some compilers that define __GNUC__.
+// implementation of it already.  At this time, GCC 4.0.0+ and MSVC
+// 2010 are the only mainstream compilers that come with a TR1 tuple
+// implementation.  NVIDIA's CUDA NVCC compiler pretends to be GCC by
+// defining __GNUC__ and friends, but cannot compile GCC's tuple
+// implementation.  MSVC 2008 (9.0) provides TR1 tuple in a 323 MB
+// Feature Pack download, which we cannot assume the user has.
+// QNX's QCC compiler is a modified GCC but it doesn't support TR1 tuple.
 # if (defined(__GNUC__) && !defined(__CUDACC__) && (GTEST_GCC_VER_ >= 40000) \
-      && !GTEST_OS_QNX && !defined(_LIBCPP_VERSION)) && !defined(_STLPORT_MAJOR) \
-      || (defined(_MSC_VER) && _MSC_VER >= 1600)
-#  define GTEST_ENV_HAS_TR1_TUPLE_ 1
-# else
-#  define GTEST_ENV_HAS_TR1_TUPLE_ 0
-# endif
-
-// C++11 specifies that <tuple> provides std::tuple. Use that if gtest is used
-// in C++11 mode and libstdc++ isn't very old (binaries targeting OS X 10.6
-// can build with clang but need to use gcc4.2's libstdc++).
-# if GTEST_LANG_CXX11 && (!defined(__GLIBCXX__) || __GLIBCXX__ > 20110325)
-#  define GTEST_ENV_HAS_STD_TUPLE_ 1
-# else
-#  define GTEST_ENV_HAS_STD_TUPLE_ 0
-# endif
-
-# if GTEST_ENV_HAS_TR1_TUPLE_ || GTEST_ENV_HAS_STD_TUPLE_
+      && !GTEST_OS_QNX) || _MSC_VER >= 1600
 #  define GTEST_USE_OWN_TR1_TUPLE 0
 # else
 #  define GTEST_USE_OWN_TR1_TUPLE 1
-#  undef  GTEST_HAS_TR1_TUPLE
-#  define GTEST_HAS_TR1_TUPLE 1
 # endif
 
 #endif  // GTEST_USE_OWN_TR1_TUPLE
@@ -1694,22 +1623,6 @@ inline bool operator!=(const GTEST_10_TUPLE_(T)& t,
 #undef GTEST_TUPLE_ELEMENT_
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_TUPLE_H_
-# elif GTEST_ENV_HAS_STD_TUPLE_
-#  include <tuple>
-// C++11 puts its tuple into the ::std namespace rather than
-// ::std::tr1.  gtest expects tuple to live in ::std::tr1, so put it there.
-// This causes undefined behavior, but supported compilers react in
-// the way we intend.
-namespace std {
-namespace tr1 {
-using ::std::get;
-using ::std::make_tuple;
-using ::std::tuple;
-using ::std::tuple_element;
-using ::std::tuple_size;
-}
-}
-
 # elif GTEST_OS_SYMBIAN
 
 // On Symbian, BOOST_HAS_TR1_TUPLE causes Boost's TR1 tuple library to
@@ -1760,16 +1673,7 @@ using ::std::tuple_size;
 // The user didn't tell us, so we need to figure it out.
 
 # if GTEST_OS_LINUX && !defined(__ia64__)
-#  if GTEST_OS_LINUX_ANDROID
-// On Android, clone() is only available on ARM starting with Gingerbread.
-#    if (defined(__arm__) || defined(__mips__)) && __ANDROID_API__ >= 9
-#     define GTEST_HAS_CLONE 1
-#    else
-#     define GTEST_HAS_CLONE 0
-#    endif
-#  else
 #  define GTEST_HAS_CLONE 1
-#  endif
 # else
 #  define GTEST_HAS_CLONE 0
 # endif  // GTEST_OS_LINUX && !defined(__ia64__)
@@ -1792,15 +1696,12 @@ using ::std::tuple_size;
 // Google Test does not support death tests for VC 7.1 and earlier as
 // abort() in a VC 7.1 application compiled as GUI in debug config
 // pops up a dialog window that cannot be suppressed programmatically.
-#if (GTEST_OS_LINUX || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS || \
-     (GTEST_OS_MAC && !GTEST_OS_IOS) || GTEST_OS_IOS_SIMULATOR || \
+#if (GTEST_OS_LINUX || GTEST_OS_MAC || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS || \
      (GTEST_OS_WINDOWS_DESKTOP && _MSC_VER >= 1400) || \
      GTEST_OS_WINDOWS_MINGW || GTEST_OS_AIX || GTEST_OS_HPUX || \
      GTEST_OS_OPENBSD || GTEST_OS_QNX)
 # define GTEST_HAS_DEATH_TEST 1
 # include <vector>  // NOLINT
-#else
-# define GTEST_HAS_DEATH_TEST 0
 #endif
 
 // We don't support MSVC 7.1 with exceptions disabled now.  Therefore
@@ -1941,6 +1842,8 @@ namespace testing {
 class Message;
 
 namespace internal {
+
+class String;
 
 // The GTEST_COMPILE_ASSERT_ macro can be used to verify that a compile time
 // expression is true. For example, you could use it to verify the
@@ -2124,9 +2027,10 @@ class GTEST_API_ RE {
  private:
   void Init(const char* regex);
 
-  // We use a const char* instead of an std::string, as Google Test used to be
-  // used where std::string is not available.  TODO(wan@google.com): change to
-  // std::string.
+  // We use a const char* instead of a string, as Google Test may be used
+  // where string is not available.  We also do not use Google Test's own
+  // String type here, in order to simplify dependencies between the
+  // files.
   const char* pattern_;
   bool is_valid_;
 
@@ -2309,9 +2213,9 @@ Derived* CheckedDowncastToActualType(Base* base) {
 //   GetCapturedStderr - stops capturing stderr and returns the captured string.
 //
 GTEST_API_ void CaptureStdout();
-GTEST_API_ std::string GetCapturedStdout();
+GTEST_API_ String GetCapturedStdout();
 GTEST_API_ void CaptureStderr();
-GTEST_API_ std::string GetCapturedStderr();
+GTEST_API_ String GetCapturedStderr();
 
 #endif  // GTEST_HAS_STREAM_REDIRECTION
 
@@ -3062,7 +2966,7 @@ typedef TypeWithSize<8>::Int TimeInMillis;  // Represents time in milliseconds.
 #define GTEST_DECLARE_int32_(name) \
     GTEST_API_ extern ::testing::internal::Int32 GTEST_FLAG(name)
 #define GTEST_DECLARE_string_(name) \
-    GTEST_API_ extern ::std::string GTEST_FLAG(name)
+    GTEST_API_ extern ::testing::internal::String GTEST_FLAG(name)
 
 // Macros for defining flags.
 #define GTEST_DEFINE_bool_(name, default_val, doc) \
@@ -3070,7 +2974,7 @@ typedef TypeWithSize<8>::Int TimeInMillis;  // Represents time in milliseconds.
 #define GTEST_DEFINE_int32_(name, default_val, doc) \
     GTEST_API_ ::testing::internal::Int32 GTEST_FLAG(name) = (default_val)
 #define GTEST_DEFINE_string_(name, default_val, doc) \
-    GTEST_API_ ::std::string GTEST_FLAG(name) = (default_val)
+    GTEST_API_ ::testing::internal::String GTEST_FLAG(name) = (default_val)
 
 // Thread annotations
 #define GTEST_EXCLUSIVE_LOCK_REQUIRED_(locks)
@@ -3163,7 +3067,30 @@ const char* StringFromGTestEnv(const char* flag, const char* default_val);
 namespace testing {
 namespace internal {
 
-// String - an abstract class holding static string utilities.
+// String - a UTF-8 string class.
+//
+// For historic reasons, we don't use std::string.
+//
+// TODO(wan@google.com): replace this class with std::string or
+// implement it in terms of the latter.
+//
+// Note that String can represent both NULL and the empty string,
+// while std::string cannot represent NULL.
+//
+// NULL and the empty string are considered different.  NULL is less
+// than anything (including the empty string) except itself.
+//
+// This class only provides minimum functionality necessary for
+// implementing Google Test.  We do not intend to implement a full-fledged
+// string class here.
+//
+// Since the purpose of this class is to provide a substitute for
+// std::string on platforms where it cannot be used, we define a copy
+// constructor and assignment operators such that we don't need
+// conditional compilation in a lot of places.
+//
+// In order to make the representation efficient, the d'tor of String
+// is not virtual.  Therefore DO NOT INHERIT FROM String.
 class GTEST_API_ String {
  public:
   // Static utility methods
@@ -3214,7 +3141,7 @@ class GTEST_API_ String {
   // NULL will be converted to "(null)".  If an error occurred during
   // the conversion, "(failed to convert from wide string)" is
   // returned.
-  static std::string ShowWideCString(const wchar_t* wide_c_str);
+  static String ShowWideCString(const wchar_t* wide_c_str);
 
   // Compares two wide C strings.  Returns true iff they have the same
   // content.
@@ -3248,12 +3175,7 @@ class GTEST_API_ String {
   static bool CaseInsensitiveWideCStringEquals(const wchar_t* lhs,
                                                const wchar_t* rhs);
 
-  // Returns true iff the given string ends with the given suffix, ignoring
-  // case. Any string is considered to end with an empty suffix.
-  static bool EndsWithCaseInsensitive(
-      const std::string& str, const std::string& suffix);
-
-  // Formats a list of arguments to an std::string, using the same format
+  // Formats a list of arguments to a String, using the same format
   // spec string as for printf.
   //
   // We do not use the StringPrintf class as it is not universally
@@ -3262,17 +3184,156 @@ class GTEST_API_ String {
   // The result is limited to 4096 characters (including the tailing
   // 0).  If 4096 characters are not enough to format the input,
   // "<buffer exceeded>" is returned.
-  static std::string Format(const char* format, ...);
+  static String Format(const char* format, ...);
+
+  // C'tors
+
+  // The default c'tor constructs a NULL string.
+  String() : c_str_(NULL), length_(0) {}
+
+  // Constructs a String by cloning a 0-terminated C string.
+  String(const char* a_c_str) {  // NOLINT
+    if (a_c_str == NULL) {
+      c_str_ = NULL;
+      length_ = 0;
+    } else {
+      ConstructNonNull(a_c_str, strlen(a_c_str));
+    }
+  }
+
+  // Constructs a String by copying a given number of chars from a
+  // buffer.  E.g. String("hello", 3) creates the string "hel",
+  // String("a\0bcd", 4) creates "a\0bc", String(NULL, 0) creates "",
+  // and String(NULL, 1) results in access violation.
+  String(const char* buffer, size_t a_length) {
+    ConstructNonNull(buffer, a_length);
+  }
+
+  // The copy c'tor creates a new copy of the string.  The two
+  // String objects do not share content.
+  String(const String& str) : c_str_(NULL), length_(0) { *this = str; }
+
+  // D'tor.  String is intended to be a final class, so the d'tor
+  // doesn't need to be virtual.
+  ~String() { delete[] c_str_; }
+
+  // Allows a String to be implicitly converted to an ::std::string or
+  // ::string, and vice versa.  Converting a String containing a NULL
+  // pointer to ::std::string or ::string is undefined behavior.
+  // Converting a ::std::string or ::string containing an embedded NUL
+  // character to a String will result in the prefix up to the first
+  // NUL character.
+  String(const ::std::string& str) {  // NOLINT
+    ConstructNonNull(str.c_str(), str.length());
+  }
+
+  operator ::std::string() const { return ::std::string(c_str(), length()); }
+
+#if GTEST_HAS_GLOBAL_STRING
+  String(const ::string& str) {  // NOLINT
+    ConstructNonNull(str.c_str(), str.length());
+  }
+
+  operator ::string() const { return ::string(c_str(), length()); }
+#endif  // GTEST_HAS_GLOBAL_STRING
+
+  // Returns true iff this is an empty string (i.e. "").
+  bool empty() const { return (c_str() != NULL) && (length() == 0); }
+
+  // Compares this with another String.
+  // Returns < 0 if this is less than rhs, 0 if this is equal to rhs, or > 0
+  // if this is greater than rhs.
+  int Compare(const String& rhs) const;
+
+  // Returns true iff this String equals the given C string.  A NULL
+  // string and a non-NULL string are considered not equal.
+  bool operator==(const char* a_c_str) const { return Compare(a_c_str) == 0; }
+
+  // Returns true iff this String is less than the given String.  A
+  // NULL string is considered less than "".
+  bool operator<(const String& rhs) const { return Compare(rhs) < 0; }
+
+  // Returns true iff this String doesn't equal the given C string.  A NULL
+  // string and a non-NULL string are considered not equal.
+  bool operator!=(const char* a_c_str) const { return !(*this == a_c_str); }
+
+  // Returns true iff this String ends with the given suffix.  *Any*
+  // String is considered to end with a NULL or empty suffix.
+  bool EndsWith(const char* suffix) const;
+
+  // Returns true iff this String ends with the given suffix, not considering
+  // case. Any String is considered to end with a NULL or empty suffix.
+  bool EndsWithCaseInsensitive(const char* suffix) const;
+
+  // Returns the length of the encapsulated string, or 0 if the
+  // string is NULL.
+  size_t length() const { return length_; }
+
+  // Gets the 0-terminated C string this String object represents.
+  // The String object still owns the string.  Therefore the caller
+  // should NOT delete the return value.
+  const char* c_str() const { return c_str_; }
+
+  // Assigns a C string to this object.  Self-assignment works.
+  const String& operator=(const char* a_c_str) {
+    return *this = String(a_c_str);
+  }
+
+  // Assigns a String object to this object.  Self-assignment works.
+  const String& operator=(const String& rhs) {
+    if (this != &rhs) {
+      delete[] c_str_;
+      if (rhs.c_str() == NULL) {
+        c_str_ = NULL;
+        length_ = 0;
+      } else {
+        ConstructNonNull(rhs.c_str(), rhs.length());
+      }
+    }
+
+    return *this;
+  }
 
  private:
-  String();  // Not meant to be instantiated.
+  // Constructs a non-NULL String from the given content.  This
+  // function can only be called when c_str_ has not been allocated.
+  // ConstructNonNull(NULL, 0) results in an empty string ("").
+  // ConstructNonNull(NULL, non_zero) is undefined behavior.
+  void ConstructNonNull(const char* buffer, size_t a_length) {
+    char* const str = new char[a_length + 1];
+    memcpy(str, buffer, a_length);
+    str[a_length] = '\0';
+    c_str_ = str;
+    length_ = a_length;
+  }
+
+  const char* c_str_;
+  size_t length_;
 };  // class String
 
-// Gets the content of the stringstream's buffer as an std::string.  Each '\0'
-// character in the buffer is replaced with "\\0".
-GTEST_API_ std::string StringStreamToString(::std::stringstream* stream);
+// Streams a String to an ostream.  Each '\0' character in the String
+// is replaced with "\\0".
+inline ::std::ostream& operator<<(::std::ostream& os, const String& str) {
+  if (str.c_str() == NULL) {
+    os << "(null)";
+  } else {
+    const char* const c_str = str.c_str();
+    for (size_t i = 0; i != str.length(); i++) {
+      if (c_str[i] == '\0') {
+        os << "\\0";
+      } else {
+        os << c_str[i];
+      }
+    }
+  }
+  return os;
+}
 
-// Converts a streamable value to an std::string.  A NULL pointer is
+// Gets the content of the stringstream's buffer as a String.  Each '\0'
+// character in the buffer is replaced with "\\0".
+GTEST_API_ String StringStreamToString(::std::stringstream* stream);
+
+// Converts a streamable value to a String.  A NULL pointer is
 // converted to "(null)".  When the input value is a ::string,
 // ::std::string, ::wstring, or ::std::wstring object, each NUL
 // character in it is replaced with "\\0".
@@ -3281,7 +3342,7 @@ GTEST_API_ std::string StringStreamToString(::std::stringstream* stream);
 // to the definition of the Message class, required by the ARM
 // compiler.
 template <typename T>
-std::string StreamableToString(const T& streamable);
+String StreamableToString(const T& streamable);
 
 }  // namespace internal
 }  // namespace testing
@@ -3349,7 +3410,11 @@ class GTEST_API_ FilePath {
   FilePath() : pathname_("") { }
   FilePath(const FilePath& rhs) : pathname_(rhs.pathname_) { }
 
-  explicit FilePath(const std::string& pathname) : pathname_(pathname) {
+  explicit FilePath(const char* pathname) : pathname_(pathname) {
+    Normalize();
+  }
+
+  explicit FilePath(const String& pathname) : pathname_(pathname) {
     Normalize();
   }
 
@@ -3362,7 +3427,7 @@ class GTEST_API_ FilePath {
     pathname_ = rhs.pathname_;
   }
 
-  const std::string& string() const { return pathname_; }
+  String ToString() const { return pathname_; }
   const char* c_str() const { return pathname_.c_str(); }
 
   // Returns the current working directory, or "" if unsuccessful.
@@ -3395,8 +3460,8 @@ class GTEST_API_ FilePath {
                                          const FilePath& base_name,
                                          const char* extension);
 
-  // Returns true iff the path is "".
-  bool IsEmpty() const { return pathname_.empty(); }
+  // Returns true iff the path is NULL or "".
+  bool IsEmpty() const { return c_str() == NULL || *c_str() == '\0'; }
 
   // If input name has a trailing separator character, removes it and returns
   // the name, otherwise return the name string unmodified.
@@ -3485,7 +3550,7 @@ class GTEST_API_ FilePath {
   // separators. Returns NULL if no path separator was found.
   const char* FindLastPathSeparator() const;
 
-  std::string pathname_;
+  String pathname_;
 };  // class FilePath
 
 }  // namespace internal
@@ -3554,7 +3619,7 @@ namespace internal {
 // NB: This function is also used in Google Mock, so don't move it inside of
 // the typed-test-only section below.
 template <typename T>
-std::string GetTypeName() {
+String GetTypeName() {
 # if GTEST_HAS_RTTI
 
   const char* const name = typeid(T).name();
@@ -3566,7 +3631,7 @@ std::string GetTypeName() {
   using abi::__cxa_demangle;
 #   endif  // GTEST_HAS_CXXABI_H_
   char* const readable_name = __cxa_demangle(name, 0, 0, &status);
-  const std::string name_str(status == 0 ? readable_name : name);
+  const String name_str(status == 0 ? readable_name : name);
   free(readable_name);
   return name_str;
 #  else
@@ -6840,7 +6905,7 @@ struct TypeList<Types<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
 // This allows a user to use his own types in Google Test assertions by
 // overloading the << operator.
 //
-// util/gtl/stl_logging.h overloads << for STL containers.  These
+// util/gtl/stl_logging-inl.h overloads << for STL containers.  These
 // overloads cannot be defined in the std namespace, as that will be
 // undefined behavior.  Therefore, they are defined in the global
 // namespace instead.
@@ -6930,8 +6995,8 @@ char (&IsNullLiteralHelper(...))[2];  // NOLINT
 #endif  // GTEST_ELLIPSIS_NEEDS_POD_
 
 // Appends the user-supplied message to the Google-Test-generated message.
-GTEST_API_ std::string AppendUserMessage(
-    const std::string& gtest_msg, const Message& user_msg);
+GTEST_API_ String AppendUserMessage(const String& gtest_msg,
+                                    const Message& user_msg);
 
 // A helper class for creating scoped traces in user programs.
 class GTEST_API_ ScopedTrace {
@@ -6952,7 +7017,7 @@ class GTEST_API_ ScopedTrace {
                             // c'tor and d'tor.  Therefore it doesn't
                             // need to be used otherwise.
 
-// Converts a streamable value to an std::string.  A NULL pointer is
+// Converts a streamable value to a String.  A NULL pointer is
 // converted to "(null)".  When the input value is a ::string,
 // ::std::string, ::wstring, or ::std::wstring object, each NUL
 // character in it is replaced with "\\0".
@@ -6960,7 +7025,7 @@ class GTEST_API_ ScopedTrace {
 // to the definition of the Message class, required by the ARM
 // compiler.
 template <typename T>
-std::string StreamableToString(const T& streamable);
+String StreamableToString(const T& streamable);
 
 // Constructs and returns the message for an equality assertion
 // (e.g. ASSERT_EQ, EXPECT_STREQ, etc) failure.
@@ -6979,12 +7044,12 @@ std::string StreamableToString(const T& streamable);
 // be inserted into the message.
 GTEST_API_ AssertionResult EqFailure(const char* expected_expression,
                                      const char* actual_expression,
-                                     const std::string& expected_value,
-                                     const std::string& actual_value,
+                                     const String& expected_value,
+                                     const String& actual_value,
                                      bool ignoring_case);
 
 // Constructs a failure message for Boolean assertions such as EXPECT_TRUE.
-GTEST_API_ std::string GetBoolAssertionFailureMessage(
+GTEST_API_ String GetBoolAssertionFailureMessage(
     const AssertionResult& assertion_result,
     const char* expression_text,
     const char* actual_predicate_value,
@@ -7330,9 +7395,9 @@ inline const char* SkipComma(const char* str) {
 
 // Returns the prefix of 'str' before the first comma in it; returns
 // the entire string if it contains no comma.
-inline std::string GetPrefixUntilComma(const char* str) {
+inline String GetPrefixUntilComma(const char* str) {
   const char* comma = strchr(str, ',');
-  return comma == NULL ? str : std::string(str, comma);
+  return comma == NULL ? String(str) : String(str, comma - str);
 }
 
 // TypeParameterizedTest<Fixture, TestSel, Types>::Register()
@@ -7417,7 +7482,7 @@ class TypeParameterizedTestCase<Fixture, Templates0, Types> {
 
 #endif  // GTEST_HAS_TYPED_TEST || GTEST_HAS_TYPED_TEST_P
 
-// Returns the current OS stack trace as an std::string.
+// Returns the current OS stack trace as a String.
 //
 // The maximum number of stack frames to be included is specified by
 // the gtest_stack_trace_depth flag.  The skip_count parameter
@@ -7427,8 +7492,8 @@ class TypeParameterizedTestCase<Fixture, Templates0, Types> {
 // For example, if Foo() calls Bar(), which in turn calls
 // GetCurrentOsStackTraceExceptTop(..., 1), Foo() will be included in
 // the trace but Bar() and GetCurrentOsStackTraceExceptTop() won't.
-GTEST_API_ std::string GetCurrentOsStackTraceExceptTop(
-    UnitTest* unit_test, int skip_count);
+GTEST_API_ String GetCurrentOsStackTraceExceptTop(UnitTest* unit_test,
+                                                  int skip_count);
 
 // Helpers for suppressing warnings on unreachable code or constant
 // condition.
@@ -8104,11 +8169,11 @@ class GTEST_API_ DeathTest {
   // the last death test.
   static const char* LastMessage();
 
-  static void set_last_death_test_message(const std::string& message);
+  static void set_last_death_test_message(const String& message);
 
  private:
   // A string containing a description of the outcome of the last death test.
-  static std::string last_death_test_message_;
+  static String last_death_test_message_;
 
   GTEST_DISALLOW_COPY_AND_ASSIGN_(DeathTest);
 };
@@ -8210,7 +8275,7 @@ GTEST_API_ bool ExitedUnsuccessfully(int exit_status);
 // RUN_ALL_TESTS was called.
 class InternalRunDeathTestFlag {
  public:
-  InternalRunDeathTestFlag(const std::string& a_file,
+  InternalRunDeathTestFlag(const String& a_file,
                            int a_line,
                            int an_index,
                            int a_write_fd)
@@ -8222,13 +8287,13 @@ class InternalRunDeathTestFlag {
       posix::Close(write_fd_);
   }
 
-  const std::string& file() const { return file_; }
+  String file() const { return file_; }
   int line() const { return line_; }
   int index() const { return index_; }
   int write_fd() const { return write_fd_; }
 
  private:
-  std::string file_;
+  String file_;
   int line_;
   int index_;
   int write_fd_;
@@ -8730,11 +8795,11 @@ class GTEST_API_ Message {
   Message& operator <<(const ::wstring& wstr);
 #endif  // GTEST_HAS_GLOBAL_WSTRING
 
-  // Gets the text streamed to this object so far as an std::string.
+  // Gets the text streamed to this object so far as a String.
   // Each '\0' character in the buffer is replaced with "\\0".
   //
   // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.
-  std::string GetString() const {
+  internal::String GetString() const {
     return internal::StringStreamToString(ss_.get());
   }
 
@@ -17153,7 +17218,7 @@ class GTEST_API_ TestPartResult {
                  int a_line_number,
                  const char* a_message)
       : type_(a_type),
-        file_name_(a_file_name == NULL ? "" : a_file_name),
+        file_name_(a_file_name),
         line_number_(a_line_number),
         summary_(ExtractSummary(a_message)),
         message_(a_message) {
@@ -17164,9 +17229,7 @@ class GTEST_API_ TestPartResult {
 
   // Gets the name of the source file where the test part took place, or
   // NULL if it's unknown.
-  const char* file_name() const {
-    return file_name_.empty() ? NULL : file_name_.c_str();
-  }
+  const char* file_name() const { return file_name_.c_str(); }
 
   // Gets the line in the source file where the test part took place,
   // or -1 if it's unknown.
@@ -17195,16 +17258,16 @@ class GTEST_API_ TestPartResult {
 
   // Gets the summary of the failure message by omitting the stack
   // trace in it.
-  static std::string ExtractSummary(const char* message);
+  static internal::String ExtractSummary(const char* message);
 
   // The name of the source file where the test part took place, or
-  // "" if the source file is unknown.
-  std::string file_name_;
+  // NULL if the source file is unknown.
+  internal::String file_name_;
   // The line in the source file where the test part took place, or -1
   // if the line number is unknown.
   int line_number_;
-  std::string summary_;  // The test failure summary.
-  std::string message_;  // The test failure message.
+  internal::String summary_;  // The test failure summary.
+  internal::String message_;  // The test failure message.
 };
 
 // Prints a TestPartResult object.
@@ -17621,9 +17684,9 @@ class TestEventRepeater;
 class WindowsDeathTest;
 class UnitTestImpl* GetUnitTestImpl();
 void ReportFailureInUnknownLocation(TestPartResult::Type result_type,
-                                    const std::string& message);
+                                    const String& message);
 
-// Converts a streamable value to an std::string.  A NULL pointer is
+// Converts a streamable value to a String.  A NULL pointer is
 // converted to "(null)".  When the input value is a ::string,
 // ::std::string, ::wstring, or ::std::wstring object, each NUL
 // character in it is replaced with "\\0".
@@ -17631,7 +17694,7 @@ void ReportFailureInUnknownLocation(TestPartResult::Type result_type,
 // to the definition of the Message class, required by the ARM
 // compiler.
 template <typename T>
-std::string StreamableToString(const T& streamable) {
+String StreamableToString(const T& streamable) {
   return (Message() << streamable).GetString();
 }
 
@@ -17956,9 +18019,9 @@ class TestProperty {
 
  private:
   // The key supplied by the user.
-  std::string key_;
+  internal::String key_;
   // The value supplied by the user.
-  std::string value_;
+  internal::String value_;
 };
 
 // The result of a single Test.  This includes a list of
@@ -18330,7 +18393,7 @@ class GTEST_API_ TestCase {
   void UnshuffleTests();
 
   // Name of the test case.
-  std::string name_;
+  internal::String name_;
   // Name of the parameter type, or NULL if this is not a typed or a
   // type-parameterized test.
   const internal::scoped_ptr<const ::std::string> type_param_;
@@ -18657,8 +18720,8 @@ class GTEST_API_ UnitTest {
   void AddTestPartResult(TestPartResult::Type result_type,
                          const char* file_name,
                          int line_number,
-                         const std::string& message,
-                         const std::string& os_stack_trace)
+                         const internal::String& message,
+                         const internal::String& os_stack_trace)
       GTEST_LOCK_EXCLUDED_(mutex_);
 
   // Adds a TestProperty to the current TestResult object. If the result already
@@ -18682,7 +18745,7 @@ class GTEST_API_ UnitTest {
   friend internal::UnitTestImpl* internal::GetUnitTestImpl();
   friend void internal::ReportFailureInUnknownLocation(
       TestPartResult::Type result_type,
-      const std::string& message);
+      const internal::String& message);
 
   // Creates an empty UnitTest.
   UnitTest();
@@ -18844,8 +18907,8 @@ GTEST_IMPL_FORMAT_C_STRING_AS_STRING_(const wchar_t, ::std::wstring);
 //
 // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.
 template <typename T1, typename T2>
-std::string FormatForComparisonFailureMessage(
-    const T1& value, const T2& /* other_operand */) {
+String FormatForComparisonFailureMessage(const T1& value,
+                                         const T2& /* other_operand */) {
   return FormatForComparison<T1, T2>::Format(value);
 }
 
@@ -19164,7 +19227,7 @@ class GTEST_API_ AssertHelper {
     TestPartResult::Type const type;
     const char*        const file;
     int                const line;
-    std::string const message;
+    String             const message;
 
    private:
     GTEST_DISALLOW_COPY_AND_ASSIGN_(AssertHelperData);
@@ -19799,7 +19862,7 @@ AssertionResult AssertPred5Helper(const char* pred_text,
 # define ASSERT_GT(val1, val2) GTEST_ASSERT_GT(val1, val2)
 #endif
 
-// C-string Comparisons.  All tests treat NULL and any non-NULL string
+// C String Comparisons.  All tests treat NULL and any non-NULL string
 // as different.  Two NULLs are equal.
 //
 //    * {ASSERT|EXPECT}_STREQ(s1, s2):     Tests that s1 == s2

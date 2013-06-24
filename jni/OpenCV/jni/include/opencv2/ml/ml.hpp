@@ -201,12 +201,14 @@ public:
     virtual float predict( const CvMat* samples, CV_OUT CvMat* results=0 ) const;
     CV_WRAP virtual void clear();
 
+#ifndef SWIG
     CV_WRAP CvNormalBayesClassifier( const cv::Mat& trainData, const cv::Mat& responses,
                             const cv::Mat& varIdx=cv::Mat(), const cv::Mat& sampleIdx=cv::Mat() );
     CV_WRAP virtual bool train( const cv::Mat& trainData, const cv::Mat& responses,
                        const cv::Mat& varIdx = cv::Mat(), const cv::Mat& sampleIdx=cv::Mat(),
                        bool update=false );
     CV_WRAP virtual float predict( const cv::Mat& samples, CV_OUT cv::Mat* results=0 ) const;
+#endif
 
     virtual void write( CvFileStorage* storage, const char* name ) const;
     virtual void read( CvFileStorage* storage, CvFileNode* node );
@@ -247,6 +249,7 @@ public:
     virtual float find_nearest( const CvMat* samples, int k, CV_OUT CvMat* results=0,
         const float** neighbors=0, CV_OUT CvMat* neighborResponses=0, CV_OUT CvMat* dist=0 ) const;
 
+#ifndef SWIG
     CV_WRAP CvKNearest( const cv::Mat& trainData, const cv::Mat& responses,
                const cv::Mat& sampleIdx=cv::Mat(), bool isRegression=false, int max_k=32 );
 
@@ -259,6 +262,7 @@ public:
                                 cv::Mat* dist=0 ) const;
     CV_WRAP virtual float find_nearest( const cv::Mat& samples, int k, CV_OUT cv::Mat& results,
                                         CV_OUT cv::Mat& neighborResponses, CV_OUT cv::Mat& dists) const;
+#endif
 
     virtual void clear();
     int get_max_k() const;
@@ -486,6 +490,7 @@ public:
     virtual float predict( const CvMat* sample, bool returnDFVal=false ) const;
     virtual float predict( const CvMat* samples, CV_OUT CvMat* results ) const;
 
+#ifndef SWIG
     CV_WRAP CvSVM( const cv::Mat& trainData, const cv::Mat& responses,
           const cv::Mat& varIdx=cv::Mat(), const cv::Mat& sampleIdx=cv::Mat(),
           CvSVMParams params=CvSVMParams() );
@@ -506,6 +511,7 @@ public:
                             bool balanced=false);
     CV_WRAP virtual float predict( const cv::Mat& sample, bool returnDFVal=false ) const;
     CV_WRAP_AS(predict_all) void predict( cv::InputArray samples, cv::OutputArray results ) const;
+#endif
 
     CV_WRAP virtual int get_support_vector_count() const;
     virtual const float* get_support_vector(int i) const;
@@ -533,8 +539,6 @@ protected:
 
     virtual void write_params( CvFileStorage* fs ) const;
     virtual void read_params( CvFileStorage* fs, CvFileNode* node );
-
-    void optimize_linear_svm();
 
     CvSVMParams params;
     CvMat* class_labels;
@@ -798,7 +802,7 @@ struct CV_EXPORTS CvDTreeTrainData
     const CvMat* responses;
     CvMat* responses_copy; // used in Boosting
 
-    int buf_count, buf_size; // buf_size is obsolete, please do not use it, use expression ((int64)buf->rows * (int64)buf->cols / buf_count) instead
+    int buf_count, buf_size;
     bool shared;
     int is_buf_16u;
 
@@ -808,12 +812,6 @@ struct CV_EXPORTS CvDTreeTrainData
 
     CvMat* counts;
     CvMat* buf;
-    inline size_t get_length_subbuf() const
-    {
-        size_t res = (size_t)(work_var_count + 1) * (size_t)sample_count;
-        return res;
-    }
-
     CvMat* direction;
     CvMat* split_buf;
 
@@ -870,6 +868,7 @@ public:
     virtual CvDTreeNode* predict( const CvMat* sample, const CvMat* missingDataMask=0,
                                   bool preprocessedInput=false ) const;
 
+#ifndef SWIG
     CV_WRAP virtual bool train( const cv::Mat& trainData, int tflag,
                        const cv::Mat& responses, const cv::Mat& varIdx=cv::Mat(),
                        const cv::Mat& sampleIdx=cv::Mat(), const cv::Mat& varType=cv::Mat(),
@@ -879,6 +878,7 @@ public:
     CV_WRAP virtual CvDTreeNode* predict( const cv::Mat& sample, const cv::Mat& missingDataMask=cv::Mat(),
                                   bool preprocessedInput=false ) const;
     CV_WRAP virtual cv::Mat getVarImportance();
+#endif
 
     virtual const CvMat* get_var_importance();
     CV_WRAP virtual void clear();
@@ -1011,6 +1011,7 @@ public:
     virtual float predict( const CvMat* sample, const CvMat* missing = 0 ) const;
     virtual float predict_prob( const CvMat* sample, const CvMat* missing = 0 ) const;
 
+#ifndef SWIG
     CV_WRAP virtual bool train( const cv::Mat& trainData, int tflag,
                        const cv::Mat& responses, const cv::Mat& varIdx=cv::Mat(),
                        const cv::Mat& sampleIdx=cv::Mat(), const cv::Mat& varType=cv::Mat(),
@@ -1019,6 +1020,7 @@ public:
     CV_WRAP virtual float predict( const cv::Mat& sample, const cv::Mat& missing = cv::Mat() ) const;
     CV_WRAP virtual float predict_prob( const cv::Mat& sample, const cv::Mat& missing = cv::Mat() ) const;
     CV_WRAP virtual cv::Mat getVarImportance();
+#endif
 
     CV_WRAP virtual void clear();
 
@@ -1105,11 +1107,13 @@ public:
                         const CvMat* sampleIdx=0, const CvMat* varType=0,
                         const CvMat* missingDataMask=0,
                         CvRTParams params=CvRTParams());
+#ifndef SWIG
     CV_WRAP virtual bool train( const cv::Mat& trainData, int tflag,
                        const cv::Mat& responses, const cv::Mat& varIdx=cv::Mat(),
                        const cv::Mat& sampleIdx=cv::Mat(), const cv::Mat& varType=cv::Mat(),
                        const cv::Mat& missingDataMask=cv::Mat(),
                        CvRTParams params=CvRTParams());
+#endif
     virtual bool train( CvMLData* data, CvRTParams params=CvRTParams() );
 protected:
     virtual std::string getName() const;
@@ -1216,6 +1220,7 @@ public:
                            CvMat* weak_responses=0, CvSlice slice=CV_WHOLE_SEQ,
                            bool raw_mode=false, bool return_sum=false ) const;
 
+#ifndef SWIG
     CV_WRAP CvBoost( const cv::Mat& trainData, int tflag,
             const cv::Mat& responses, const cv::Mat& varIdx=cv::Mat(),
             const cv::Mat& sampleIdx=cv::Mat(), const cv::Mat& varType=cv::Mat(),
@@ -1232,6 +1237,7 @@ public:
     CV_WRAP virtual float predict( const cv::Mat& sample, const cv::Mat& missing=cv::Mat(),
                                    const cv::Range& slice=cv::Range::all(), bool rawMode=false,
                                    bool returnSum=false ) const;
+#endif
 
     virtual float calc_error( CvMLData* _data, int type , std::vector<float> *resp = 0 ); // type in {CV_TRAIN_ERROR, CV_TEST_ERROR}
 
@@ -1898,6 +1904,7 @@ public:
                        int flags=0 );
     virtual float predict( const CvMat* inputs, CV_OUT CvMat* outputs ) const;
 
+#ifndef SWIG
     CV_WRAP CvANN_MLP( const cv::Mat& layerSizes,
               int activateFunc=CvANN_MLP::SIGMOID_SYM,
               double fparam1=0, double fparam2=0 );
@@ -1912,6 +1919,7 @@ public:
                       int flags=0 );
 
     CV_WRAP virtual float predict( const cv::Mat& inputs, CV_OUT cv::Mat& outputs ) const;
+#endif
 
     CV_WRAP virtual void clear();
 

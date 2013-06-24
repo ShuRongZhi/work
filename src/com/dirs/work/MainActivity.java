@@ -23,7 +23,7 @@ public class MainActivity extends Activity {
 		isZoom = mBundle.getBoolean("Mode");
 		String Size = mBundle.getString("Size");
 		int num = mBundle.getInt("Number");
-		String str = "图片是否缩放:" + isZoom + " 图片质量:" + Size + " 显示数量:" + num;
+		String str = "Java层缩放:" + isZoom + " 图片质量:" + Size + " 显示数量:" + num;
 		this.setTitle(str);
 		ListView lv = (ListView)findViewById(R.id.list);
 		List<String> data = new ArrayList<String>();
@@ -31,7 +31,6 @@ public class MainActivity extends Activity {
 		for(int i=0;i<num;++i){
 			data.add(Size +"/test" + i +".jpg");
 		}
-		
 		ImageAdapter adapter = new ImageAdapter(data,getApplicationContext(),isZoom);
 		lv.setAdapter(adapter);
 	}

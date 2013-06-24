@@ -1,42 +1,57 @@
 #include "com_dirs_work_JniHelper.h"
 #include "DownloadHelper.h"
 #include "CacheManager.h"
+
+#include "ImageProcess.h"
+
 //声明函数原型
 std::string JstringToString(jstring);
 //全局变量
 JNIEnv *g_env;
 CacheManager mCache;
-std::string mCacheName;
+bool isZoom;
+std::string mOriginCache; 
+std::string mSmallCache;
 //计时器
 TimeHelper mTime;
+//图像处理类
+ImageProcess mImageProcess;
 
-
-void Java_com_dirs_work_JniHelper_init(JNIEnv *env, jobject thisz)
+void Java_com_dirs_work_JniHelper_init(JNIEnv *env, jobject thisz, jboolean flag)
 {
 
     LOGD("初始化Native");
     FileHelper mFileHelper;
-    if(!mFileHelper.checkCacheFolderExits())
+    isZoom = flag;
+    g_env = env;
+    if(isZoom)
+    {
+        LOGD("在Native层处理图像缩放");
+    }
+    if(!mFileHelper.checkSmallImageCacheExits() || !mFileHelper.checkOriginImageCacheExits())
     {
         LOGD("缓存文件夹不存在，创建！");
-        if(!mFileHelper.createCacheFolder())
-        {
-            LOGE("致命错误，创建缓存文件夹失败!");
-        }
+        mFileHelper.createOriginCacheFolder();
+        mFileHelper.createSmallCacheFolder();
     }
-    mCacheName = mFileHelper.getCachePath();
-    if(!mFileHelper.checkFolderExits(mCacheName + "1MP"))
+    mOriginCache = mFileHelper.getOriginCachePath(); 
+    mSmallCache = mFileHelper.getSmallCachePath();
+    if(!mFileHelper.checkFolderExits(mOriginCache + "1MP"))
     {
-        mFileHelper.createFolder(mCacheName + "1MP");
+        mFileHelper.createFolder(mOriginCache + "1MP");
     }
-    if(!mFileHelper.checkFolderExits(mCacheName + "2MP"))
+    if(!mFileHelper.checkFolderExits(mOriginCache + "2MP"))
     {
-        mFileHelper.createFolder(mCacheName + "2MP");
+        mFileHelper.createFolder(mOriginCache + "2MP");
     }
-    mTime.setStart();
-    g_env = env;
-    mTime.setEnd();
-    LOGD("初始化Native耗时:%f",mTime.getUseTime());
+    if(!mFileHelper.checkFolderExits(mSmallCache + "1MP"))
+    {
+        mFileHelper.createFolder(mSmallCache + "1MP");
+    }
+    if(!mFileHelper.checkFolderExits(mSmallCache + "2MP"))
+    {
+        mFileHelper.createFolder(mSmallCache + "2MP");
+    }
 }
 
 //根据图片路径取得byte[]
@@ -52,15 +67,23 @@ jbyteArray Java_com_dirs_work_JniHelper_getImage(JNIEnv *env, jobject thisz, jst
     
     //图片下载助手类
     DownloadHelper mDownHelper;
-
-    if("error" == mDownHelper.getImage(_imageID))
+    
+    
+    if("error" == mDownHelper.getImage(_imageID,isZoom))
     {
-        LOGE("下载图片失败!");
         return 0;
     }
     else
     {
-        _imageID = mCacheName + _imageID;
+        if(isZoom)
+        {
+           _imageID = mSmallCache + _imageID;
+        }
+        else
+        {
+            _imageID = mOriginCache + _imageID;
+        }
+
         //定义指针p，并用来接受CacheMager::getMemory返回的char *
         char * p;
         p = mCache.getMemory(_imageID);
@@ -92,6 +115,7 @@ jbyteArray Java_com_dirs_work_JniHelper_getImage(JNIEnv *env, jobject thisz, jst
                 return jarray;
             }
         }
+    
     }
 }
 
@@ -101,36 +125,8 @@ jbyteArray Java_com_dirs_work_JniHelper_getImage(JNIEnv *env, jobject thisz, jst
 std::string JstringToString(jstring source)
 {
     const char* str;
-    str = g_env->GetStringUTFChars(source, false);
+    str = g_env->GetStringUTFChars(source,false);
     std::string temp(str);
     g_env->ReleaseStringUTFChars(source,str);
     return temp;
-}
-
-
-jboolean Java_com_dirs_work_JniHelper_downloadImage(JNIEnv *env, jobject thisz, jstring image)
-{
-    const char* str;
-    str = g_env->GetStringUTFChars(image, false);
-    std::string _image(str);
-    g_env->ReleaseStringUTFChars(image,str);
-    
-    if(0 == _image.length())
-    {
-        LOGD("Error,Native层downloadImage不接受空参数!");
-        return false;
-    }
-    else
-    {
-        DownloadHelper mDownloadHelper;
-        if("" == mDownloadHelper.getImage(_image))
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-    
 }

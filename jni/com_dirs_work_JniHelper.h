@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     com_dirs_work_JniHelper
  * Method:    init
- * Signature: ()V
+ * Signature: (Z)V
  */
 JNIEXPORT void JNICALL Java_com_dirs_work_JniHelper_init
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jboolean);
 
 /*
  * Class:     com_dirs_work_JniHelper
@@ -21,14 +21,6 @@ JNIEXPORT void JNICALL Java_com_dirs_work_JniHelper_init
  * Signature: (Ljava/lang/String;)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_com_dirs_work_JniHelper_getImage
-  (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     com_dirs_work_JniHelper
- * Method:    downloadImage
- * Signature: (Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_com_dirs_work_JniHelper_downloadImage
   (JNIEnv *, jobject, jstring);
 
 #ifdef __cplusplus

@@ -1,12 +1,23 @@
 #ifndef __OPENCV_GTESTCV_HPP__
 #define __OPENCV_GTESTCV_HPP__
 
-#ifdef HAVE_CVCONFIG_H
+#if HAVE_CVCONFIG_H
 #include "cvconfig.h"
 #endif
 #ifndef GTEST_CREATE_SHARED_LIBRARY
 #ifdef BUILD_SHARED_LIBS
 #define GTEST_LINKED_AS_SHARED_LIBRARY 1
+#endif
+#endif
+
+#ifdef ANDROID
+# include <android/api-level.h>
+# define GTEST_HAS_CLONE (__ANDROID_API__ > 7 && __arm__)
+# define GTEST_HAS_POSIX_RE (__ANDROID_API__ > 7)
+# if defined _GLIBCXX_USE_WCHAR_T && _GLIBCXX_USE_WCHAR_T
+#  define GTEST_HAS_STD_WSTRING 1
+# else
+#  define GTEST_HAS_STD_WSTRING 0
 #endif
 #endif
 
@@ -546,15 +557,6 @@ struct CV_EXPORTS DefaultRngAuto
 };
 
 }
-
-namespace cvtest
-{
-
-// test images generation functions
-CV_EXPORTS void fillGradient(Mat& img, int delta = 5);
-CV_EXPORTS void smoothBorder(Mat& img, const Scalar& color, int delta = 3);
-
-} //namespace cvtest
 
 // fills c with zeros
 CV_EXPORTS void cvTsZero( CvMat* c, const CvMat* mask=0 );

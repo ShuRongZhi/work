@@ -6,82 +6,31 @@
 #include <stdio.h>
 #include <cstdlib>
 
-
-//判断文件是否存在
-bool FileHelper::checkFileExits(std::string filename)
+//判断存放原图的缓存文件夹是否存在
+bool FileHelper::checkOriginImageCacheExits()
 {
-    std::string name = CacheName + filename;
-    //LOGD("请求检查的文件名为:%s",filename.c_str());
-    _file.open(name.c_str(),std::ios::in);
-    if(!_file)
-    {
-        //LOGD("该文件不存在");
-        return false;
-    }
-    else
-    {
-        //LOGD("该文件已存在");
-        _file.close();
-        return true;
-    }
+    return this->checkFolderExits(OriginCachePath);
 }
-
-//判断文件夹是否存在
-bool FileHelper::checkFolderExits(std::string foldername)
+//判断存放缩小后图片的缓存文件夹是否存在
+bool FileHelper::checkSmallImageCacheExits()
 {
-    if(0 == access(foldername.c_str(),F_OK))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return this->checkFolderExits(SmallCachePath);
 }
-
-//判断缓存文件夹是否存在
-bool FileHelper::checkCacheFolderExits()
+//创建原图缓存文件夹
+void FileHelper::createOriginCacheFolder()
 {
-    return this->checkFolderExits(CacheName);
-}
+    this->createFolder(OriginCachePath);
 
-//创建文件夹
-bool FileHelper::createFolder(std::string name)
+}
+//创建小图缓存文件夹
+void FileHelper::createSmallCacheFolder()
 {
-    if(0 == mkdir(name.c_str(), 0777))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    this->createFolder(SmallCachePath);
 }
-
-//创建缓存文件夹
-bool FileHelper::createCacheFolder()
-{
-    return this->createFolder(CacheName);
-}
-
-//获取图片路径
-std::string FileHelper::getImagePath(std::string name)
-{
-    return CacheName + name;
-}
-
-//获取缓存文件路径
-std::string FileHelper::getCachePath()
-{
-    
-    return CacheName;
-}
-
-//删除图片，指定完整路径名
-//传递all表示删除缓存文件夹下所有文件
+//删除图片，传递all表示清空缓存
 bool FileHelper::delImage(std::string path)
 {
-	if(0 == path.length())
+    if(0 == path.length())
 	{
 		LOGE("delImage不接受空参数!");
 		return false;
@@ -89,9 +38,11 @@ bool FileHelper::delImage(std::string path)
 	if("all" == path)
 	{
 	    std::string command;
-	    command = "rm -r " + CacheName;
-	    LOGD("%s",command.c_str());
-	    //调用sytem的rm-r删除文件夹
+	    command = "rm -r " + OriginCachePath;
+	    LOGD("删除原图缓存文件夹：%s",command.c_str());
+		system(command.c_str());
+	    command = "rm -r " + SmallCachePath;
+	    LOGD("删除小图缓存文件夹:%s",command.c_str());
 		system(command.c_str());
 		return true;
 	}
@@ -110,5 +61,65 @@ bool FileHelper::delImage(std::string path)
 		}
 	}
 }
-
-
+//检查原图是否存在，传递图片名
+bool FileHelper::checkOriginImageExits(std::string fileName)
+{
+    std::string name = OriginCachePath + fileName;
+    return checkFileExits(name);
+}
+//检查小图是否存在，传递图片名
+bool FileHelper::checkSmallImageExits(std::string fileName)
+{
+     std::string name = SmallCachePath + fileName;
+    return checkFileExits(name);
+}
+//检查文件是否存在，传递完整路径
+bool FileHelper::checkFileExits(std::string filename)
+{
+    _file.open(filename.c_str(),std::ios::in);
+    if(!_file)
+    {
+        //LOGD("该文件不存在");
+        return false;
+    }
+    else
+    {
+        //LOGD("该文件已存在");
+        _file.close();
+        return true;
+    }
+}
+//取得原图缓存文件夹路径
+std::string FileHelper::getOriginCachePath()
+{
+    return OriginCachePath;
+}
+//取得小图缓存文件夹路径
+std::string FileHelper::getSmallCachePath()
+{
+    return SmallCachePath;
+}
+//判断文件夹是否存在
+bool FileHelper::checkFolderExits(std::string folderName)
+{
+    if(0 == access(folderName.c_str(),F_OK))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+//创建目录
+bool FileHelper::createFolder(std::string folderName)
+{
+    if(0 == mkdir(folderName.c_str(), 0777))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}

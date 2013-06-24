@@ -11,9 +11,9 @@ class DownloadHelper{
         ~DownloadHelper(){
             //LOGD("DonwloadHelper析构函数");
         }
-        //获取图片函数，如果图片已缓存直接返回路径，否则调用download下载
+        //获取图片函数，要求图片路径和是否缩放，如果图片已缓存直接返回路径，否则调用download下载
         //如果失败返回error
-        std::string getImage(std::string);
+        std::string getImage(std::string,bool);
         //下载图片函数
         bool download(std::string);
         
