@@ -239,7 +239,7 @@ public class LoadImageHelper {
 			super.handleMessage(msg);
 			switch (msg.what) {
 			// 下载图片失败
-			case -1:
+			case -1: 
 				//将下载失败的位置设置为失败提示图片
 				View err_v = mCache.ViewCache.get(msg.arg1);
 				ImageView err_iv = (ImageView) err_v.findViewById(R.id.image);
