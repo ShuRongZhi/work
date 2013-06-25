@@ -113,7 +113,8 @@ public class LoadImageHelper {
 
 	// 图片下载函数，调用JniHelper提供getImage接口，获得图片对应的byte[]，如果下载失败返回null
 	private synchronized boolean getImage(String iamge, int position) {
-		mJniHelper.init(isJava);
+		//指定缩放模式
+		mJniHelper.init(!isJava);
 		byte[] buf = mJniHelper.getImage(iamge);
 		if (buf != null) {
 			try {
